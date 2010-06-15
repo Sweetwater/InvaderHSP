@@ -1,0 +1,69 @@
+goto *main
+
+#const mainWindowID (0)
+
+#const screenWidth (640)
+#const screenHeight (480)
+
+#const screenCenterX (screenWidth / 2)
+#const screenCenterY (screenHeight / 2)
+
+#const FPS (1000 / 60)
+
+
+#define escKey 128
+#define backgoundColor 255, 255, 255
+
+
+#deffunc initializeGame
+	playerX = screenCenterX;
+	playerY = screenCenterY;
+
+	pos playerX, playerY
+	picload "./data/myShip.bmp", 1
+
+	return
+
+
+#deffunc updateGame
+
+	playerX += 1
+	pos playerX, playerY
+	picload "./data/myShip.bmp", 1
+
+	return
+
+
+#deffunc initializeScreen
+	screen mainWindowID, screenWidth, screenHeight
+
+	return
+
+
+
+
+
+*main
+
+	initializeScreen
+	initializeGame
+
+	repeat
+		redraw 0
+		color backgoundColor
+		boxf 0, 0, screenWidth, screenHeight
+
+		stick inputKey, escKey
+		if inputKey & escKey {
+			goto *gameEnd
+		}
+
+		updateGame
+
+		redraw 1
+		await FPS
+	loop
+
+*gameEnd
+	end
+
