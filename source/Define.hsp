@@ -1,0 +1,59 @@
+#ifndef ___Define___
+#define ___Define___
+
+#define global true (1)
+#define global false (0)
+
+#const global mainWindowID (0)
+
+#const global screenWidth (640)
+#const global screenHeight (480)
+
+#const global screenCenterX (screenWidth / 2)
+#const global screenCenterY (screenHeight / 2)
+
+#const global FPS (1000 / 60)
+
+#const global bulletMaxNum 32
+
+#enum global leftKey = 0
+#enum global rightKey
+#enum global upKey
+#enum global downKey
+#enum global spaceKey
+#enum global escKey
+#enum global wKey
+#enum global aKey
+#enum global sKey
+#enum global dKey
+#enum global leftMouse
+#enum global rightMouse
+
+
+#if 0
+#define global leftKey		1
+#define global upKey		2
+#define global rightKey		4
+#define global downKey		8
+#define global spaceKey		16
+#define global enterKey		32
+#define global ctrlKey		64
+#define global escKey		128
+#define global leftMouse	256
+#define global rightMouse	512
+#define global tabKey		1024
+#endif
+
+#define global backgoundColor 0, 0, 0
+
+
+#define global dbgMes(%1=0,%2=0,%3)	pos %1,%2			:\
+									color 255,255,255	:\
+									mes %3
+
+#define global dbgMesStp(%1=0,%2=0,%3)	pos %1,%2			:\
+										color 255,255,255	:\
+										mes %3				:\
+										stop
+
+#endif

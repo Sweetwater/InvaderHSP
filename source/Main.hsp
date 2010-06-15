@@ -1,0 +1,133 @@
+#include "./source/Define.hsp"
+#include "./source/Player.hsp"
+#include "./source/Bullet.hsp"
+
+
+#deffunc initializeScreen
+	screen mainWindowID, screenWidth, screenHeight
+	return
+
+
+#deffunc loadGame
+
+	celload "./data/myShip.bmp"
+	myShipImageID = stat
+	celdiv myShipImageID, 32,32, 16,16
+
+	celload "./data/bullet.bmp"
+	bulletImageID = stat
+	celdiv bulletImageID, 8,8, 4,4
+
+//	pos playerX, playerY
+//	picload "./data/myShip.bmp", 1
+
+	return
+
+#deffunc initializeGame
+
+	newmod player, ModPlayer, myShipImageID
+	
+	repeat bulletMaxNum
+		newmod bullets, ModBullet, bulletImageID
+	loop
+
+	playerSetBullets player, bullets
+
+	return
+
+#deffunc updateGame
+	playerUpdate player
+	
+	repeat length(bullets)
+		bulletUpdate bullets(cnt)
+	loop
+
+	return
+
+#deffunc drawGame
+	playerDraw player
+
+	repeat length(bullets)
+		bulletDraw bullets(cnt)
+	loop
+
+	return
+
+#deffunc initializeInput
+	dim inputCode, 32
+	inputCode(leftKey) = 37
+	inputCode(rightKey) = 39
+	inputCode(upKey) = 38
+	inputCode(downKey) = 40
+	inputCode(spaceKey) = 32
+	inputCode(escKey) = 27
+	inputCode(wKey) = 87
+	inputCode(aKey) = 65
+	inputCode(sKey) = 83
+	inputCode(dKey) = 68
+	inputCode(leftMouse) = 1
+	inputCode(rightMouse) = 2
+
+	oldKeyState = 0
+	newKeyState = 0
+	triggerKeyState = 0
+	releaseKeyState = 0
+
+	return
+
+#deffunc updateInput
+	oldKeyState = newKeyState
+	newKeyState = 0
+	repeat length(inputCode)
+		getkey inputKey, inputCode(cnt)
+		if inputKey : newKeyState |= (1 << cnt)
+	loop
+
+	triggerKeyState = (oldKeyState ^ $FFFFFFFF) & newKeyState
+	releaseKeyState = (newKeyState ^ $FFFFFFFF) & oldKeyState
+
+	return
+
+#defcfunc isKeyUp int key
+	return isKeyDown(key) == false
+
+#defcfunc isKeyDown int key
+	return newKeyState & (1 << key)
+
+#defcfunc isKeyTrigger int key
+	return triggerKeyState & (1 << key)
+
+#defcfunc isKeyRelease int key
+	return releaseKeyState & (1 << key)
+
+
+
+*main
+
+	initializeScreen
+
+	loadGame
+	initializeGame
+
+	initializeInput
+
+	repeat
+		redraw 0
+//		redraw 1
+		color backgoundColor
+		boxf 0, 0, screenWidth, screenHeight
+
+		updateInput
+		updateGame
+		drawGame
+
+		if isKeyDown(escKey) {
+			goto *gameEnd
+		}
+
+		redraw 1
+		await FPS
+	loop
+
+*gameEnd
+	end

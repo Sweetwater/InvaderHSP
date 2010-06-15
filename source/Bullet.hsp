@@ -1,0 +1,52 @@
+#ifndef ___Bullet___
+#define ___Bullet___
+
+
+#include "./source/Define.hsp"
+
+#module ModBullet x, y, isActive, imageID
+
+#const moveX 4
+
+#const yLimitMin 0
+#const yLimitMax screenHeight
+
+#modinit int _imageID
+	imageID = _imageID
+	isActive = false
+	return
+
+#modterm
+	return
+
+#modcfunc bulletIsActive
+	return isActive
+
+#modfunc bulletFire int _x, int _y
+	if isActive : return
+
+	x = _x
+	y = _y
+	isActive = true
+
+	return
+
+#modfunc bulletUpdate
+	if isActive == false : return
+
+	y -= moveY
+	y = limit(y, yLimitMin, yLimitMax)
+
+	return
+
+#modfunc bulletDraw
+	if isActive == false : return
+
+	pos x, y
+	celput imageID, 0
+	return
+
+#global
+
+
+#endif
