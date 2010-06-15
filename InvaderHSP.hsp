@@ -1,44 +1,51 @@
 goto *main
 
-#const mainWindowID (0)
-
-#const screenWidth (640)
-#const screenHeight (480)
-
-#const screenCenterX (screenWidth / 2)
-#const screenCenterY (screenHeight / 2)
-
-#const FPS (1000 / 60)
-
-
-#define escKey 128
-#define backgoundColor 255, 255, 255
-
-
-#deffunc initializeGame
-	playerX = screenCenterX;
-	playerY = screenCenterY;
-
-	pos playerX, playerY
-	picload "./data/myShip.bmp", 1
-
-	return
-
-
-#deffunc updateGame
-
-	playerX += 1
-	pos playerX, playerY
-	picload "./data/myShip.bmp", 1
-
-	return
+#include "./Define.hsp"
+#include "./Player.hsp"
 
 
 #deffunc initializeScreen
 	screen mainWindowID, screenWidth, screenHeight
+	return
+
+
+#deffunc loadGame
+
+	celload "./data/myShip.bmp", 1
+	myShipImageID = stat
+	celdiv myShipImageID, 32, 32, 16, 16
+
+//	pos playerX, playerY
+//	picload "./data/myShip.bmp", 1
 
 	return
 
+#deffunc initializeGame
+	newmod player, ModPlayer, myShipImageID
+	return
+
+#deffunc updateGame
+	update player
+	return
+
+#deffunc drawGame
+	draw player
+	return
+
+/*
+#define x 0
+#define y 1
+#define hp 2
+//#define name 3
+
+int[][] enemys
+enemys[0][x] = 210
+enemys[0][y] = 123
+enemys[0][hp] = 10
+//enemys[0][name] = "aaaa"
+
+enemyNames[0] = = "aaaa"
+*/
 
 
 
@@ -46,10 +53,13 @@ goto *main
 *main
 
 	initializeScreen
+
+	loadGame
 	initializeGame
 
 	repeat
-		redraw 0
+//		redraw 0
+		redraw 1
 		color backgoundColor
 		boxf 0, 0, screenWidth, screenHeight
 
@@ -59,6 +69,7 @@ goto *main
 		}
 
 		updateGame
+		drawGame
 
 		redraw 1
 		await FPS

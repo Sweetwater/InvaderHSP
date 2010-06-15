@@ -1,0 +1,40 @@
+#ifndef ___Define___
+#define ___Define___
+
+#const mainWindowID (0)
+
+#const screenWidth (640)
+#const screenHeight (480)
+
+#const screenCenterX (screenWidth / 2)
+#const screenCenterY (screenHeight / 2)
+
+#const FPS (1000 / 60)
+
+#define leftKey		1
+#define upKey		2
+#define rightKey	4
+#define downKey		8
+#define spaceKey	16
+#define enterKey	32
+#define ctrlKey		64
+#define escKey		128
+#define leftMouse	256
+#define rightMouse	512
+#define tabKey		1024
+
+#define backgoundColor 255, 255, 255
+
+
+#define dbgMes(%1)	pos 0,0		:\
+					color 0,0,0	:\
+					mes %1
+					
+					
+
+#define dbgMesStp(%1)	pos 0,0		:\
+						color 0,0,0	:\
+						mes %1		:\
+						stop
+
+#endif
