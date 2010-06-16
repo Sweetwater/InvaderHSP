@@ -1,6 +1,7 @@
 #include "./source/Define.hsp"
 #include "./source/Player.hsp"
 #include "./source/Bullet.hsp"
+#include "./source/Enemy.hsp"
 
 
 #deffunc initializeScreen
@@ -11,44 +12,105 @@
 #deffunc loadGame
 
 	celload "./data/myShip.bmp"
-	myShipImageID = stat
-	celdiv myShipImageID, 32,32, 16,16
+	gMyShipImageID = stat
+	celdiv gMyShipImageID, 32,32, 16,16
+
+	celload "./data/enemy.bmp"
+	gEnemyImageID = stat
+	celdiv gEnemyImageID, 32,32, 16,16
 
 	celload "./data/bullet.bmp"
-	bulletImageID = stat
-	celdiv bulletImageID, 8,8, 4,4
-
-//	pos playerX, playerY
-//	picload "./data/myShip.bmp", 1
+	gBulletImageID = stat
+	celdiv gBulletImageID, 8,8, 4,$
 
 	return
 
 #deffunc initializeGame
 
-	newmod player, ModPlayer, myShipImageID
-	
-	repeat bulletMaxNum
-		newmod bullets, ModBullet, bulletImageID
+	newmod gPlayer, ModPlayer, gMyShipImageID
+
+// TODO : モジュール変数の多次元配列の作成方法を調べる
+//	dimtype gEnemys, vartype("struct"), 4,10
+	repeat enemyMaxNum
+		newmod gEnemys, ModEnemy, gEnemyImageID
 	loop
 
-	playerSetBullets player, bullets
+	//dimtype bullets, vartype("struct"),32
+	repeat bulletMaxNum
+		newmod gBullets, ModBullet, gBulletImageID
+	loop
+
+// TODO : 引数で渡した配列の保持の方法を調べる
+//	playerSetBullets player, bullets
+
+	return
+
+#deffunc resetEnemys array enemys
+	index = 0
+	repeat enemyNumV
+		i = cnt
+		repeat enemyNumH
+			j = cnt
+			x = j * enemyOffsetX + enemyStartX
+			y = i * enemyOffsetY + enemyStartY
+			enemyReset gEnemys(index), x, y
+			index++
+		loop
+	loop
+	return
+
+#deffunc checkHit array enemys, array bullets
+	repeat length(enemys)
+		i = cnt
+		if enemyIsActive(enemys(i)) == false : continue
+
+		enemyX = enemyGetX(enemys(i))
+		enemyY = enemyGetY(enemys(i))
+
+		repeat length(bullets)
+			j = cnt
+			if bulletIsActive(bullets(j)) == false : continue
+
+			bulletX = bulletGetX(Bullets(j))
+			bulletY = bulletGetY(bullets(j))
+			diffX = abs(enemyX - bulletX)
+			diffY = abs(enemyY - bulletY)
+
+			isHitX = diffX < enemyBulletRangeX
+			isHitY = diffY < enemyBulletRangeY
+			if (isHitX & isHitY) {
+			   enemyDisable enemys(i)
+			   bulletDisable bullets(j)
+			}
+		loop
+	loop
 
 	return
 
 #deffunc updateGame
-	playerUpdate player
-	
-	repeat length(bullets)
-		bulletUpdate bullets(cnt)
+	playerUpdate gPlayer, gBullets
+
+	repeat length(gEnemys)
+		enemyUpdate gEnemys(cnt)
 	loop
+
+	repeat length(gBullets)
+		bulletUpdate gBullets(cnt)
+	loop
+
+	checkHit gEnemys, gBullets
 
 	return
 
 #deffunc drawGame
-	playerDraw player
+	playerDraw gPlayer
 
-	repeat length(bullets)
-		bulletDraw bullets(cnt)
+	repeat length(gEnemys)
+		enemyDraw gEnemys(cnt)
+	loop
+
+	repeat length(gBullets)
+		bulletDraw gBullets(cnt)
 	loop
 
 	return
@@ -68,23 +130,23 @@
 	inputCode(leftMouse) = 1
 	inputCode(rightMouse) = 2
 
-	oldKeyState = 0
-	newKeyState = 0
-	triggerKeyState = 0
-	releaseKeyState = 0
+	gOldKeyState = 0
+	gNewKeyState = 0
+	gTriggerKeyState = 0
+	gReleaseKeyState = 0
 
 	return
 
 #deffunc updateInput
-	oldKeyState = newKeyState
-	newKeyState = 0
+	gOldKeyState = gNewKeyState
+	gNewKeyState = 0
 	repeat length(inputCode)
 		getkey inputKey, inputCode(cnt)
-		if inputKey : newKeyState |= (1 << cnt)
+		if inputKey : gNewKeyState |= (1 << cnt)
 	loop
 
-	triggerKeyState = (oldKeyState ^ $FFFFFFFF) & newKeyState
-	releaseKeyState = (newKeyState ^ $FFFFFFFF) & oldKeyState
+	gTriggerKeyState = (gOldKeyState ^ $FFFFFFFF) & gNewKeyState
+	gReleaseKeyState = (gNewKeyState ^ $FFFFFFFF) & gOldKeyState
 
 	return
 
@@ -92,13 +154,13 @@
 	return isKeyDown(key) == false
 
 #defcfunc isKeyDown int key
-	return newKeyState & (1 << key)
+	return gNewKeyState & (1 << key)
 
 #defcfunc isKeyTrigger int key
-	return triggerKeyState & (1 << key)
+	return gTriggerKeyState & (1 << key)
 
 #defcfunc isKeyRelease int key
-	return releaseKeyState & (1 << key)
+	return gReleaseKeyState & (1 << key)
 
 
 
@@ -110,6 +172,8 @@
 	initializeGame
 
 	initializeInput
+
+	resetEnemys gEnemys
 
 	repeat
 		redraw 0

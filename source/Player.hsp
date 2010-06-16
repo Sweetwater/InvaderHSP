@@ -5,7 +5,7 @@
 #include "./source/Define.hsp"
 #include "./source/Bullet.hsp"
 
-#module ModPlayer x, y, imageID
+#module ModPlayer mX, mY, mImageID
 
 #const startX screenCenterX
 #const startY 450
@@ -15,42 +15,46 @@
 #const xLimitMin 0
 #const xLimitMax screenWidth
 
-#modinit int imgID
-	imageID = imgID
-	x = startX
-	y = startY
+#modinit int imageID
+	mImageID = imageID
+	mX = startX
+	mY = startY
 	return
 
 #modterm
 	return
 
 #modcfunc playerGetX
-	return x
+	return mX
 
 #modcfunc playerGetY
-	return y
+	return mY
 
-#modfunc playerSetBullets var _bullets
-	bullets = _bullets
+#if 0
+#modfunc playerSetBullets array _bullets
+//	dbgMesStp ,30,"length :" + length(_bullets)
+	dup bullets, _bullets
+//	bullets = _bullets
+
+	dbgMesStp ,30,"length :" + length(bullets)
+
 	return
+#endif
 
-#modfunc playerUpdate
-	stick inputKey, (leftKey | rightKey | spaceKey)
-	if inputKey & leftKey {
-		x -= moveX
+#modfunc playerUpdate array bullets
+	if isKeyDown(leftKey) {
+		mX -= moveX
 	}
-	if inputKey & rightKey {
-		x += moveX
+	if isKeyDown(rightKey) {
+		mX += moveX
 	}
-	x = limit(x, xLimitMin, xLimitMax)
+	mX = limit(mX, xLimitMin, xLimitMax)
 
-//	a = bulletIsActive(bullets(0))
-
-	dbgMes ,,"player update : " + inputKey
-	if inputKey & spaceKey {
+	if isKeyTrigger(spaceKey) {
 		repeat length(bullets)
 			if bulletIsActive(bullets(cnt)) == 0 {
-				bulletFire bullets(cnt), x, y
+				bulletFire bullets(cnt), mX, mY
+				break
 			}
 		loop
 	}
@@ -58,9 +62,8 @@
 	return
 
 #modfunc playerDraw
-	pos x, y
-	celput imageID, 0
-//	picload "./data/myShip.bmp", 1
+	pos mX, mY
+	celput mImageID, 0
 	return
 
 #global

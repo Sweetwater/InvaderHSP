@@ -1,10 +1,10 @@
-#ifndef ___Bullet___
-#define ___Bullet___
+#ifndef ___Enemy___
+#define ___Enemy___
 
 
 #include "./source/Define.hsp"
 
-#module ModBullet mX, mY, mIsActive, mImageID
+#module ModEnemy mX, mY, mIsActive, mImageID
 
 #const moveY 4
 
@@ -19,38 +19,38 @@
 #modterm
 	return
 
-#modfunc bulletUpdate
+#modfunc enemyUpdate
 	if mIsActive == false : return
-	mY -= moveY
-	mY = limit(mY, yLimitMin, yLimitMax)
-	if (my = yLimitMin) : mIsActive = false
+//	mY -= moveY
+//	mY = limit(mY, yLimitMin, yLimitMax)
 	return
 
-#modfunc bulletDraw
+#modfunc enemyDraw
 	if mIsActive == false : return
 	pos mX, mY
 	celput mImageID, 0
 	return
 
 
-
-#modcfunc bulletGetX
+#modcfunc enemyGetX
 	return mX
 
-#modcfunc bulletGetY
+#modcfunc enemyGetY
 	return mY
 
-#modcfunc bulletIsActive
+#modcfunc enemyIsActiv
 	return mIsActive
 
-#modfunc bulletFire int x, int y
-	if mIsActive : return
+#modcfunc enemyIsActive
+	return mIsActive
+
+#modfunc enemyReset int x, int y
 	mX = x
 	mY = y
 	mIsActive = true
 	return
 
-#modfunc bulletDisable
+#modfunc enemyDisable
 	mIsActive = false
 	return
 
