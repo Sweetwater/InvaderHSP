@@ -5,20 +5,40 @@
 #include "./source/Define.hsp"
 #include "./source/Bullet.hsp"
 
-#module ModPlayer mX, mY, mIsActive, mImageID
+#module ModPlayer	mX, mY,				\
+					mMoveX, mMoveY,		\
+					mEscKeyCounterL,	\
+					mEscKeyCounterR,	\
+					mAction,			\
+					mIsActive,			\
+					mImageID
 
 #const startX screenCenterX
 #const startY 450
 
-#const moveX 3
+#const sprintX 20
+#const walkX 3
+#const escapeX 50
+
+#const escKeyCount 10
 
 #const xLimitMin 0
 #const xLimitMax screenWidth
+
+#enum actionStop = 0
+#enum actionWalk
+#enum actionSprint
+#enum actionCreeping
+#enum actionEscape
+
 
 #modinit int imageID
 	mImageID = imageID
 	mX = startX
 	mY = startY
+	mMoveX = 0
+	mMoveY = 0
+	mAction = actionStop
 	mIsActive = true
 	return
 
@@ -28,12 +48,57 @@
 #modfunc playerUpdate array bullets
 	if mIsActive == false : return
 
-	if isKeyDown(keyLeft) {
-		mX -= moveX
+	mMoveX = 0
+	mMoveY = 0
+
+	if isKeyDown(keyDown) {
+		mAction = actionCreeping
 	}
-	if isKeyDown(keyRight) {
-		mX += moveX
+	else : if isKeyTrigger(keyLeft) & mEscKeyCounterL {
+		mEscKeyCounterL = 0
+		mMoveX = -escapeX
+		mAction = actionEscape
 	}
+	else : if isKeyTrigger(keyRight) & mEscKeyCounterR {
+		mEscKeyCounterR = 0
+		mMoveX = escapeX
+		mAction = actionEscape
+	}
+	else : if isKeyDown(keyShift) & isKeyDown(keyLeft) {
+		mMoveX = -sprintX
+		mAction = actionSprint
+	}
+	else:if isKeyDown(keyShift) & isKeyDown(keyRight) {
+		mMoveX = sprintX
+		mAction = actionSprint
+	}
+	else:if isKeyDown(keyLeft) {
+		mMoveX = -walkX
+		mAction = actionWalk
+	}
+	else:if isKeyDown(keyRight) {
+		mMoveX = walkX
+		mAction = actionWalk
+	}
+
+	if isKeyTrigger(keyLeft) {
+		mEscKeyCounterL = escKeyCount
+	}
+	else : if isKeyTrigger(keyRight) {
+		mEscKeyCounterR = escKeyCount
+	}
+
+	if mEscKeyCounterL : mEscKeyCounterL--
+	if mEscKeyCounterR : mEscKeyCounterR--
+
+	if mAction == actionEscape {
+		mX += mMoveX
+		mAction = actionStop
+	}
+	else {
+		mX += mMoveX
+	}
+
 	mX = limit(mX, xLimitMin, xLimitMax)
 
 	if isKeyTrigger(keySpace) {

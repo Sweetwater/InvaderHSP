@@ -20,6 +20,7 @@
 #enum global keyDown
 #enum global keySpace
 #enum global keyEsc
+#enum global keyShift
 #enum global keyW
 #enum global keyA
 #enum global keyS
@@ -41,7 +42,7 @@
 
 
 #const global playerBulletMaxNum (32)
-#const global enemyBulletMaxNum (32)
+#const global enemyBulletMaxNum (2)
 #const global enemyMaxNum (2)
 
 #const global enemyStartX (60)

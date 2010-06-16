@@ -14,6 +14,7 @@
 	inputCode(keyDown) = 40
 	inputCode(keySpace) = 32
 	inputCode(keyEsc) = 27
+	inputCode(keyShift) = 16
 	inputCode(keyW) = 87
 	inputCode(keyA) = 65
 	inputCode(keyS) = 83
@@ -45,13 +46,13 @@
 	return isKeyDown(key) == false
 
 #defcfunc isKeyDown int key
-	return gNewKeyState & (1 << key)
+	return (gNewKeyState >> key) & 0x00000001
 
 #defcfunc isKeyTrigger int key
-	return gTriggerKeyState & (1 << key)
+	return (gTriggerKeyState >> key) & 0x00000001
 
 #defcfunc isKeyRelease int key
-	return gReleaseKeyState & (1 << key)
+	return (gReleaseKeyState >> key) & 0x00000001
 
 
 
