@@ -36,8 +36,12 @@
 	loop
 
 	//dimtype bullets, vartype("struct"),32
-	repeat bulletMaxNum
-		newmod gBullets, ModBullet, gBulletImageID
+
+	repeat playerBulletMaxNum
+		newmod gPlayerBullets, ModBullet, gBulletImageID
+	loop
+	repeat enemyBulletMaxNum
+		newmod gEnemyBullets, ModBullet, gBulletImageID
 	loop
 
 // TODO : ˆø”‚Å“n‚µ‚½”z—ñ‚Ì•Û‚Ì•û–@‚ğ’²‚×‚é
@@ -49,21 +53,34 @@
 
 
 #deffunc resetEnemys array enemys
-	index = 0
-	repeat enemyNumV
-		i = cnt
-		repeat enemyNumH
-			j = cnt
-			x = j * enemyOffsetX + enemyStartX
-			y = i * enemyOffsetY + enemyStartY
-			enemyReset gEnemys(index), x, y
-			index++
-		loop
+	repeat enemyMaxNum
+		enemyReset gEnemys(cnt), enemyStartX, enemyStartY
 	loop
 	return
 
 
-#deffunc checkHit array enemys, array bullets
+#defcfunc checkHitBullets int x, int y, array bullets, local j
+	hitIndex = -1
+	repeat length(bullets)
+		j = cnt
+		if bulletIsActive(bullets(j)) == false : continue
+
+		bulletX = bulletGetX(bullets(j))
+		bulletY = bulletGetY(bullets(j))
+		diffX = abs(x - bulletX)
+		diffY = abs(y - bulletY)
+
+		isHitX = diffX < enemyBulletRangeX
+		isHitY = diffY < enemyBulletRangeY
+		if (isHitX & isHitY) {
+			hitIndex = j
+			break
+		}
+	loop
+	return hitIndex
+
+
+#deffunc checkHitEnemy array enemys, array bullets
 	repeat length(enemys)
 		i = cnt
 		if enemyIsActive(enemys(i)) == false : continue
@@ -71,24 +88,25 @@
 		enemyX = enemyGetX(enemys(i))
 		enemyY = enemyGetY(enemys(i))
 
-		repeat length(bullets)
-			j = cnt
-			if bulletIsActive(bullets(j)) == false : continue
-
-			bulletX = bulletGetX(Bullets(j))
-			bulletY = bulletGetY(bullets(j))
-			diffX = abs(enemyX - bulletX)
-			diffY = abs(enemyY - bulletY)
-
-			isHitX = diffX < enemyBulletRangeX
-			isHitY = diffY < enemyBulletRangeY
-			if (isHitX & isHitY) {
-			   enemyDisable enemys(i)
-			   bulletDisable bullets(j)
-			}
-		loop
+		hitIndex = checkHitBullets(enemyX, enemyY, bullets)
+		if hitIndex != -1 {
+		   enemyDisable enemys(i)
+		   bulletDisable bullets(hitIndex)
+		}
 	loop
 
+	return
+
+
+#deffunc checkHitPlayer var player, array bullets
+	playerX = playerGetX(player)
+	playerY = playerGetY(player)
+
+	hitIndex = checkHitBullets(playerX, playerY, bullets)
+	if hitIndex != -1 {
+	   playerDisable player
+	   bulletDisable bullets(hitIndex)
+	}
 	return
 
 
@@ -99,17 +117,21 @@
 
 
 #deffunc updatePlayState
-	playerUpdate gPlayer, gBullets
+	playerUpdate gPlayer, gPlayerBullets
 
 	repeat length(gEnemys)
-		enemyUpdate gEnemys(cnt)
+		enemyUpdate gEnemys(cnt), gEnemyBullets
 	loop
 
-	repeat length(gBullets)
-		bulletUpdate gBullets(cnt)
+	repeat length(gPlayerBullets)
+		bulletUpdate gPlayerBullets(cnt)
+	loop
+	repeat length(gEnemyBullets)
+		bulletUpdate gEnemyBullets(cnt)
 	loop
 
-	checkHit gEnemys, gBullets
+	checkHitPlayer gPlayer, gEnemyBullets
+	checkHitEnemy gEnemys, gPlayerBullets
 	return
 
 
@@ -127,14 +149,19 @@
 
 
 #deffunc drawGame
+	gmode 2
+
 	playerDraw gPlayer
 
 	repeat length(gEnemys)
 		enemyDraw gEnemys(cnt)
 	loop
 
-	repeat length(gBullets)
-		bulletDraw gBullets(cnt)
+	repeat length(gPlayerBullets)
+		bulletDraw gPlayerBullets(cnt)
+	loop
+	repeat length(gEnemyBullets)
+		bulletDraw gEnemyBullets(cnt)
 	loop
 
 	return

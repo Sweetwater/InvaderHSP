@@ -14,18 +14,18 @@
 
 #const global FPS (1000 / 60)
 
-#enum global leftKey = 0
-#enum global rightKey
-#enum global upKey
-#enum global downKey
-#enum global spaceKey
-#enum global escKey
-#enum global wKey
-#enum global aKey
-#enum global sKey
-#enum global dKey
-#enum global leftMouse
-#enum global rightMouse
+#enum global keyLeft = 0
+#enum global keyRight
+#enum global keyUp
+#enum global keyDown
+#enum global keySpace
+#enum global keyEsc
+#enum global keyW
+#enum global keyA
+#enum global keyS
+#enum global keyD
+#enum global mouseLeft
+#enum global mouseRight
 
 #define global backgoundColor 0, 0, 0
 
@@ -40,17 +40,19 @@
 										stop
 
 
-#const global bulletMaxNum (32)
-#const global enemyNumV (4)
-#const global enemyNumH (10)
-#const global enemyMaxNum (enemyNumV * enemyNumH)
+#const global playerBulletMaxNum (32)
+#const global enemyBulletMaxNum (32)
+#const global enemyMaxNum (2)
 
 #const global enemyStartX (60)
 #const global enemyStartY (80)
-#const global enemyOffsetX (52)
-#const global enemyOffsetY (42)
 
 #const global enemyBulletRangeX (20)
 #const global enemyBulletRangeY (20)
+
+#enum global dirLeft = 0
+#enum global dirRight
+#enum global dirUp
+#enum global dirDown
 
 #endif

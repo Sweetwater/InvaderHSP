@@ -4,7 +4,7 @@
 
 #include "./source/Define.hsp"
 
-#module ModBullet mX, mY, mIsActive, mImageID
+#module ModBullet mX, mY, mDirection, mIsActive, mImageID
 
 #const moveY 4
 
@@ -21,9 +21,14 @@
 
 #modfunc bulletUpdate
 	if mIsActive == false : return
-	mY -= moveY
+
+	if mDirection == dirUp:mY -= moveY
+	if mDirection == dirDown:mY += moveY
+
 	mY = limit(mY, yLimitMin, yLimitMax)
-	if (my = yLimitMin) : mIsActive = false
+	if (mY = yLimitMin) | (mY = yLimitMax) {
+		mIsActive = false
+	}
 	return
 
 #modfunc bulletDraw
@@ -43,10 +48,11 @@
 #modcfunc bulletIsActive
 	return mIsActive
 
-#modfunc bulletFire int x, int y
+#modfunc bulletFire int x, int y, int direction
 	if mIsActive : return
 	mX = x
 	mY = y
+	mDirection = direction
 	mIsActive = true
 	return
 

@@ -4,12 +4,12 @@
 
 #include "./source/Define.hsp"
 
-#module ModEnemy mX, mY, mIsActive, mImageID
+#module ModEnemy mX, mY, mDirection, mSpeed, mIsActive, mImageID
 
 #const moveY 4
 
-#const yLimitMin 0
-#const yLimitMax screenHeight
+#const xLimitMin 0
+#const xLimitMax screenWidth
 
 #modinit int imageID
 	mImageID = imageID
@@ -19,10 +19,31 @@
 #modterm
 	return
 
-#modfunc enemyUpdate
+#modfunc enemyUpdate array bullets
 	if mIsActive == false : return
-//	mY -= moveY
-//	mY = limit(mY, yLimitMin, yLimitMax)
+
+	if mDirection == dirLeft {
+		mX -= mSpeed
+	}
+	if mDirection == dirRight {
+		mX += mSpeed
+	}
+	mX = limit(mX, xLimitMin, xLimitMax)
+
+	if (mX == xLimitMin) | (mX == xLimitMax) {
+		if mDirection : mDirection = 0 : else : mDirection = 1
+		mSpeed = rnd(5) + 1
+	}
+
+	if rnd(10) == 0 {
+		repeat length(bullets)
+			if bulletIsActive(bullets(cnt)) == false {
+				bulletFire bullets(cnt), mX, mY, dirDown
+				break
+			}
+		loop
+	}
+
 	return
 
 #modfunc enemyDraw
@@ -48,6 +69,14 @@
 	mX = x
 	mY = y
 	mIsActive = true
+
+	dim _dir, 2
+	_dir(0) = dirLeft
+	_dir(1) = dirRight
+
+	mDirection = _dir(rnd(2))
+	mSpeed = rnd(5) + 1
+
 	return
 
 #modfunc enemyDisable

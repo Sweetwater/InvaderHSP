@@ -1,24 +1,25 @@
 #include "./source/Define.hsp"
 #include "./source/Game.hsp"
 
-#deffunc initializeScreen
+#deffunc initializeSystem
 	screen mainWindowID, screenWidth, screenHeight
+	randomize
 	return
 
 #deffunc initializeInput
 	dim inputCode, 32
-	inputCode(leftKey) = 37
-	inputCode(rightKey) = 39
-	inputCode(upKey) = 38
-	inputCode(downKey) = 40
-	inputCode(spaceKey) = 32
-	inputCode(escKey) = 27
-	inputCode(wKey) = 87
-	inputCode(aKey) = 65
-	inputCode(sKey) = 83
-	inputCode(dKey) = 68
-	inputCode(leftMouse) = 1
-	inputCode(rightMouse) = 2
+	inputCode(keyLeft) = 37
+	inputCode(keyRight) = 39
+	inputCode(keyUp) = 38
+	inputCode(keyDown) = 40
+	inputCode(keySpace) = 32
+	inputCode(keyEsc) = 27
+	inputCode(keyW) = 87
+	inputCode(keyA) = 65
+	inputCode(keyS) = 83
+	inputCode(keyD) = 68
+	inputCode(mouseLeft) = 1
+	inputCode(mouseRight) = 2
 
 	gOldKeyState = 0
 	gNewKeyState = 0
@@ -55,12 +56,11 @@
 
 
 *main
-	initializeScreen
+	initializeSystem
+	initializeInput
 
 	loadGame
 	initializeGame
-
-	initializeInput
 
 	repeat
 		redraw 0
@@ -72,7 +72,7 @@
 		updateGame
 		drawGame
 
-		if isKeyDown(escKey) {
+		if isKeyDown(keyEsc) {
 			goto *gameEnd
 		}
 

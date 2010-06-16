@@ -5,7 +5,7 @@
 #include "./source/Define.hsp"
 #include "./source/Bullet.hsp"
 
-#module ModPlayer mX, mY, mImageID
+#module ModPlayer mX, mY, mIsActive, mImageID
 
 #const startX screenCenterX
 #const startY 450
@@ -19,41 +19,27 @@
 	mImageID = imageID
 	mX = startX
 	mY = startY
+	mIsActive = true
 	return
 
 #modterm
 	return
 
-#modcfunc playerGetX
-	return mX
-
-#modcfunc playerGetY
-	return mY
-
-#if 0
-#modfunc playerSetBullets array _bullets
-//	dbgMesStp ,30,"length :" + length(_bullets)
-	dup bullets, _bullets
-//	bullets = _bullets
-
-	dbgMesStp ,30,"length :" + length(bullets)
-
-	return
-#endif
-
 #modfunc playerUpdate array bullets
-	if isKeyDown(leftKey) {
+	if mIsActive == false : return
+
+	if isKeyDown(keyLeft) {
 		mX -= moveX
 	}
-	if isKeyDown(rightKey) {
+	if isKeyDown(keyRight) {
 		mX += moveX
 	}
 	mX = limit(mX, xLimitMin, xLimitMax)
 
-	if isKeyTrigger(spaceKey) {
+	if isKeyTrigger(keySpace) {
 		repeat length(bullets)
-			if bulletIsActive(bullets(cnt)) == 0 {
-				bulletFire bullets(cnt), mX, mY
+			if bulletIsActive(bullets(cnt)) == false {
+				bulletFire bullets(cnt), mX, mY, dirUp
 				break
 			}
 		loop
@@ -62,9 +48,24 @@
 	return
 
 #modfunc playerDraw
+	if mIsActive == false : return
+
 	pos mX, mY
 	celput mImageID, 0
 	return
+
+
+
+
+#modfunc playerDisable
+	mIsActive = false
+	return
+
+#modcfunc playerGetX
+	return mX
+
+#modcfunc playerGetY
+	return mY
 
 #global
 
