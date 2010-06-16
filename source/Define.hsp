@@ -50,6 +50,11 @@
 #const global enemyBulletRangeX (20)
 #const global enemyBulletRangeY (20)
 
+#const global bunkerMaxNum (12)
+#const global bunkerStartX (40)
+#const global bunkerOffsetX (60)
+#const global bunkerStartY (380)
+
 #enum global dirLeft = 0
 #enum global dirRight
 #enum global dirUp

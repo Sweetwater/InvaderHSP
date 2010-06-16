@@ -1,0 +1,53 @@
+#ifndef ___Bunker___
+#define ___Bunker___
+
+
+#include "./source/Define.hsp"
+
+#module ModBunker mX, mY, mDirection, mIsActive, mImageID
+
+#modinit int imageID
+	mImageID = imageID
+	mIsActive = false
+	return
+
+#modterm
+	return
+
+#modfunc bunkerUpdate
+	if mIsActive == false : return
+
+	return
+
+#modfunc bunkerDraw
+	if mIsActive == false : return
+	pos mX, mY
+	celput mImageID, 0
+	return
+
+
+
+
+#modcfunc bunkerGetX
+	return mX
+
+#modcfunc bunkerGetY
+	return mY
+
+#modcfunc bunkerIsActive
+	return mIsActive
+
+#modfunc bunkerDisable
+	mIsActive = false
+	return
+
+#modfunc bunkerReset int x, int y
+	mX = x
+	mY = y
+	mIsActive = true
+	return
+
+#global
+
+
+#endif

@@ -5,6 +5,7 @@
 #include "./source/Player.hsp"
 #include "./source/Bullet.hsp"
 #include "./source/Enemy.hsp"
+#include "./source/Bunker.hsp"
 
 #module Game
 
@@ -22,7 +23,11 @@
 
 	celload "./data/bullet.bmp"
 	gBulletImageID = stat
-	celdiv gBulletImageID, 8,8, 4,$
+	celdiv gBulletImageID, 8,8, 4,4
+
+	celload "./data/bunker.bmp"
+	gBunkerImageID = stat
+	celdiv gBunkerImageID, 32,32, 4,4
 	return
 
 
@@ -44,6 +49,10 @@
 		newmod gEnemyBullets, ModBullet, gBulletImageID
 	loop
 
+	repeat bunkerMaxNum
+		newmod gBunkers, ModBunker, gBunkerImageID
+	loop
+
 // TODO : à¯êîÇ≈ìnÇµÇΩîzóÒÇÃï€éùÇÃï˚ñ@Çí≤Ç◊ÇÈ
 //	playerSetBullets player, bullets
 
@@ -52,66 +61,93 @@
 	return
 
 
-#deffunc resetEnemys array enemys
-	repeat enemyMaxNum
-		enemyReset gEnemys(cnt), enemyStartX, enemyStartY
+#deffunc resetEnemys array _enemys
+	repeat length(_enemys)
+		enemyReset _enemys(cnt), enemyStartX, enemyStartY
+	loop
+	return
+
+#deffunc resetBunkers array _bunkers
+	repeat length(_bunkers)
+		x = cnt * bunkerOffsetX + bunkerStartX
+		y = bunkerStartY
+		bunkerReset _bunkers(cnt), x, y
 	loop
 	return
 
 
-#defcfunc checkHitBullets int x, int y, array bullets, local j
+#defcfunc checkHitBullets int _x, int _y, array _bullets, local _i
 	hitIndex = -1
-	repeat length(bullets)
-		j = cnt
-		if bulletIsActive(bullets(j)) == false : continue
+	repeat length(_bullets)
+		_i = cnt
+		if bulletIsActive(_bullets(_i)) == false : continue
 
-		bulletX = bulletGetX(bullets(j))
-		bulletY = bulletGetY(bullets(j))
-		diffX = abs(x - bulletX)
-		diffY = abs(y - bulletY)
+		bulletX = bulletGetX(_bullets(_i))
+		bulletY = bulletGetY(_bullets(_i))
+		diffX = abs(_x - bulletX)
+		diffY = abs(_y - bulletY)
 
 		isHitX = diffX < enemyBulletRangeX
 		isHitY = diffY < enemyBulletRangeY
 		if (isHitX & isHitY) {
-			hitIndex = j
+			hitIndex = _i
 			break
 		}
 	loop
 	return hitIndex
 
 
-#deffunc checkHitEnemy array enemys, array bullets
-	repeat length(enemys)
-		i = cnt
-		if enemyIsActive(enemys(i)) == false : continue
+#deffunc checkHitBunker array _bunkers, array _bullets, local _i
+	repeat length(_bunkers)
+		_i = cnt
+		if bunkerIsActive(_bunkers(_i)) == false : continue
 
-		enemyX = enemyGetX(enemys(i))
-		enemyY = enemyGetY(enemys(i))
+		bunkerX = bunkerGetX(_bunkers(_i))
+		bunkerY = bunkerGetY(_bunkers(_i))
 
-		hitIndex = checkHitBullets(enemyX, enemyY, bullets)
+		hitIndex = checkHitBullets(bunkerX, bunkerY, _bullets)
 		if hitIndex != -1 {
-		   enemyDisable enemys(i)
-		   bulletDisable bullets(hitIndex)
+		   bunkerDisable _bunkers(_i)
+		   bulletDisable _bullets(hitIndex)
 		}
 	loop
 
 	return
 
 
-#deffunc checkHitPlayer var player, array bullets
-	playerX = playerGetX(player)
-	playerY = playerGetY(player)
+#deffunc checkHitEnemy array _enemys, array _bullets, local _i
+	repeat length(_enemys)
+		_i = cnt
+		if enemyIsActive(_enemys(_i)) == false : continue
 
-	hitIndex = checkHitBullets(playerX, playerY, bullets)
+		enemyX = enemyGetX(_enemys(_i))
+		enemyY = enemyGetY(_enemys(_i))
+
+		hitIndex = checkHitBullets(enemyX, enemyY, _bullets)
+		if hitIndex != -1 {
+		   enemyDisable _enemys(_i)
+		   bulletDisable _bullets(hitIndex)
+		}
+	loop
+
+	return
+
+
+#deffunc checkHitPlayer var _player, array _bullets
+	playerX = playerGetX(_player)
+	playerY = playerGetY(_player)
+
+	hitIndex = checkHitBullets(playerX, playerY, _bullets)
 	if hitIndex != -1 {
-	   playerDisable player
-	   bulletDisable bullets(hitIndex)
+	   playerDisable _player
+	   bulletDisable _bullets(hitIndex)
 	}
 	return
 
 
 #deffunc updateInitState
 	resetEnemys gEnemys
+	resetBunkers gBunkers
 	state = statePlay
 	return
 
@@ -130,8 +166,14 @@
 		bulletUpdate gEnemyBullets(cnt)
 	loop
 
+	repeat length(gBunkers)
+		bunkerUpdate gBunkers(cnt)
+	loop
+
 	checkHitPlayer gPlayer, gEnemyBullets
 	checkHitEnemy gEnemys, gPlayerBullets
+	checkHitBunker gBunkers, gEnemyBullets
+	checkHitBunker gBunkers, gPlayerBullets
 	return
 
 
@@ -162,6 +204,10 @@
 	loop
 	repeat length(gEnemyBullets)
 		bulletDraw gEnemyBullets(cnt)
+	loop
+
+	repeat length(gBunkers)
+		bunkerDraw gBunkers(cnt)
 	loop
 
 	return
