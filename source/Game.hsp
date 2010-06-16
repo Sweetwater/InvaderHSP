@@ -1,0 +1,145 @@
+#ifndef ___Game___
+#define ___Game___
+
+#include "./source/Define.hsp"
+#include "./source/Player.hsp"
+#include "./source/Bullet.hsp"
+#include "./source/Enemy.hsp"
+
+#module Game
+
+#enum stateInitialize = 0
+#enum statePlay
+
+#deffunc loadGame
+	celload "./data/myShip.bmp"
+	gMyShipImageID = stat
+	celdiv gMyShipImageID, 32,32, 16,16
+
+	celload "./data/enemy.bmp"
+	gEnemyImageID = stat
+	celdiv gEnemyImageID, 32,32, 16,16
+
+	celload "./data/bullet.bmp"
+	gBulletImageID = stat
+	celdiv gBulletImageID, 8,8, 4,$
+	return
+
+
+#deffunc initializeGame
+	newmod gPlayer, ModPlayer, gMyShipImageID
+
+// TODO : モジュール変数の多次元配列の作成方法を調べる
+//	dimtype gEnemys, vartype("struct"), 4,10
+	repeat enemyMaxNum
+		newmod gEnemys, ModEnemy, gEnemyImageID
+	loop
+
+	//dimtype bullets, vartype("struct"),32
+	repeat bulletMaxNum
+		newmod gBullets, ModBullet, gBulletImageID
+	loop
+
+// TODO : 引数で渡した配列の保持の方法を調べる
+//	playerSetBullets player, bullets
+
+	state = stateInitialize
+
+	return
+
+
+#deffunc resetEnemys array enemys
+	index = 0
+	repeat enemyNumV
+		i = cnt
+		repeat enemyNumH
+			j = cnt
+			x = j * enemyOffsetX + enemyStartX
+			y = i * enemyOffsetY + enemyStartY
+			enemyReset gEnemys(index), x, y
+			index++
+		loop
+	loop
+	return
+
+
+#deffunc checkHit array enemys, array bullets
+	repeat length(enemys)
+		i = cnt
+		if enemyIsActive(enemys(i)) == false : continue
+
+		enemyX = enemyGetX(enemys(i))
+		enemyY = enemyGetY(enemys(i))
+
+		repeat length(bullets)
+			j = cnt
+			if bulletIsActive(bullets(j)) == false : continue
+
+			bulletX = bulletGetX(Bullets(j))
+			bulletY = bulletGetY(bullets(j))
+			diffX = abs(enemyX - bulletX)
+			diffY = abs(enemyY - bulletY)
+
+			isHitX = diffX < enemyBulletRangeX
+			isHitY = diffY < enemyBulletRangeY
+			if (isHitX & isHitY) {
+			   enemyDisable enemys(i)
+			   bulletDisable bullets(j)
+			}
+		loop
+	loop
+
+	return
+
+
+#deffunc updateInitState
+	resetEnemys gEnemys
+	state = statePlay
+	return
+
+
+#deffunc updatePlayState
+	playerUpdate gPlayer, gBullets
+
+	repeat length(gEnemys)
+		enemyUpdate gEnemys(cnt)
+	loop
+
+	repeat length(gBullets)
+		bulletUpdate gBullets(cnt)
+	loop
+
+	checkHit gEnemys, gBullets
+	return
+
+
+#deffunc updateGame
+	if state == stateInitialize {
+		updateInitState
+		return
+	}
+	if state == statePlay {
+		updatePlayState
+		return
+	}
+
+	return
+
+
+#deffunc drawGame
+	playerDraw gPlayer
+
+	repeat length(gEnemys)
+		enemyDraw gEnemys(cnt)
+	loop
+
+	repeat length(gBullets)
+		bulletDraw gBullets(cnt)
+	loop
+
+	return
+
+
+#global
+
+#endif
