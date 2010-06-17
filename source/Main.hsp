@@ -2,7 +2,7 @@
 #include "./source/Game.hsp"
 
 #deffunc initializeSystem
-	screen mainWindowID, screenWidth, screenHeight
+	screen mainWindowID, screenWidth, screenHeight,,0,-20
 	randomize
 	return
 

@@ -1,0 +1,54 @@
+#ifndef ___Animation___
+#define ___Animation___
+
+#module ModAnimation	mIndex,			\
+						mFrame,			\
+						mFrameCounter,	\
+						mChip,			\
+						mIsEnd
+
+#modinit
+	mIndex = 0
+	mFrame = 0
+	mFrameCounter = 0
+	mChip = 0
+	mIsEnd = 0
+	return
+
+#modterm
+	return
+
+#modcfunc animUpdate array _animDatas
+
+	if mFrameCounter > 0 {
+		mFrameCounter--
+	}
+
+	mIsEnd = 0
+	if mFrameCounter == 0 {
+		mFrame++
+		endFlag = _animDatas(mIndex, mFrame*2)
+		if endFlag < 0 {
+			mIsEnd = 1
+			mFrame = 0
+		}
+		mFrameCounter = _animDatas(mIndex, mFrame*2+1)
+		mChip = _animDatas(mIndex, mFrame*2)
+	}
+
+	return mChip
+
+#modfunc animChange array _animDatas, int _index
+	mIndex = _index
+	mFrame = 0
+	mFrameCounter = _animDatas(mIndex, mFrame*2+1)
+	mChip = _animDatas(mIndex, mFrame*2)
+	return
+
+#modcfnc animIsEnd
+	return mIsEnd
+
+#global
+
+
+#endif

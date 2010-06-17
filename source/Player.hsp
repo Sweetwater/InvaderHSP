@@ -4,19 +4,27 @@
 
 #include "./source/Define.hsp"
 #include "./source/Bullet.hsp"
+#include "./source/Animation.hsp"
 
 #module ModPlayer	mX, mY,				\
 					mMoveX, mMoveY,		\
+					mDirection,			\
 					mEscKeyCounterL,	\
 					mEscKeyCounterR,	\
 					mAction,			\
+					mActionSub,			\
+					mActionCounter,		\
+					mIsOldActionChange,	\
+					mIsActionChange,	\
 					mIsActive,			\
+					mAnim,				\
 					mImageID
 
 #const startX screenCenterX
 #const startY 450
 
-#const sprintX 20
+#const sprintX 10
+#const sprintSlipX 2
 #const walkX 3
 #const escapeX 50
 
@@ -31,6 +39,18 @@
 #enum actionCreeping
 #enum actionEscape
 
+#enum aStL = 0
+#enum aStR
+#enum aWlL
+#enum aWlR
+#enum aSpLReady
+#enum aSpLSprint
+#enum aSpLSlip
+#enum aSpRReady
+#enum aSpRSprint
+#enum aSpRSlip
+#enum aCrL
+#enum aCrR
 
 #modinit int imageID
 	mImageID = imageID
@@ -38,8 +58,12 @@
 	mY = startY
 	mMoveX = 0
 	mMoveY = 0
-	mAction = actionStop
+	mDirection = dirLeft
+	mAction = -1
 	mIsActive = true
+
+	playerinitAnim thismod
+	playerChangeAct thismod, actionStop
 	return
 
 #modterm
@@ -48,37 +72,137 @@
 #modfunc playerUpdate array bullets
 	if mIsActive == false : return
 
+	mIsActionChange = mIsOldActionChange;
+	mIsOldActionChange = false
+
+	playerCheckAction thismod
+	playerUpdateAction thismod
+	mX = limit(mX, xLimitMin, xLimitMax)
+
+	if isKeyTrigger(keySpace) {
+//		repeat length(bullets)
+//			if bulletIsActive(bullets(cnt)) == false {
+//				bulletFire bullets(cnt), mX, mY, dirUp
+//				break
+//			}
+//		loop
+	}
+
+	return
+
+#modfunc playerDraw
+	if mIsActive == false : return
+
+	chipIndex = animUpdate(mAnim, sAnimDatas)
+
+	pos mX, mY
+	color transparence
+	celput mImageID, chipIndex
+
+	return
+
+
+
+
+
+#modfunc playerInitAnim
+	if sIsAnimDate : return
+	sIsAnimDate = true
+
+	dim _animDatas, 32*32
+	_animDatas(aStL*32)       = 6,16, 7,16, -1
+	_animDatas(aStR*32)       = 8,16, 9,16, -1
+	_animDatas(aWlL*32)       = 0,6, 1,6, 2,6, -1
+	_animDatas(aWlR*32)       = 3,6, 4,6, 5,6, -1
+	_animDatas(aSpLReady*32)  = 6,-1
+	_animDatas(aSpLSprint*32) = 10,2, 11,2, 12,2, -1
+	_animDatas(aSpLSlip*32)   = 20,-1
+	_animDatas(aSpRReady*32)  = 8,-1
+	_animDatas(aSpRSprint*32) = 13,2, 14,2, 15,2, -1
+	_animDatas(aSpRSlip*32)   = 25,-1
+	_animDatas(aCrL*32)       = 17,-1
+	_animDatas(aCrR*32)       = 18,-1
+
+	dim sAnimDatas, 32, 32
+	repeat 32
+		i = cnt
+		repeat 32
+			j = cnt
+			sAnimDatas(i,j) = _animDatas(i*32+j)
+		loop
+	loop
+
+	newmod mAnim, ModAnimation
+	return
+
+
+
+
+
+#modfunc playerChangeAct int _action, int _actionSub, int _direction
+	if mAction == _action & mActionSub == _actionSub  & mDirection == _direction{
+		return
+	}
+	mAction = _action
+	mActionSub = _actionSub
+	mDirection = _direction
+
+	// ÉAÉNÉVÉáÉìÇÃïœçXÇéüÉtÉåÅ[ÉÄÇ÷ì`Ç¶ÇÈÇΩÇﬂ
+	// àÍíUmIsOldActionChangeÇ…äiî[Ç∑ÇÈ
+	mIsOldActionChange = true
+
+logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _direction
+	if mAction == actionStop {
+		if mDirection == dirLeft:anim = aStL : else :anim = aStR
+		animChange mAnim, sAnimDatas, anim
+	}
+	else : if mAction == actionWalk {
+		if mDirection == dirLeft:anim = aWlL : else :anim = aWlR
+		animChange mAnim, sAnimDatas, anim
+	}
+	
+
+	return
+
+
+#modfunc playerCheckAction
+
+	if mAction == actionSprint | mAction == actionEscape {
+		return
+	}
+
 	mMoveX = 0
 	mMoveY = 0
 
 	if isKeyDown(keyDown) {
 		mAction = actionCreeping
 	}
-	else : if isKeyTrigger(keyLeft) & mEscKeyCounterL {
+	else:if isKeyTrigger(keyLeft) & mEscKeyCounterL {
 		mEscKeyCounterL = 0
 		mMoveX = -escapeX
 		mAction = actionEscape
 	}
-	else : if isKeyTrigger(keyRight) & mEscKeyCounterR {
+	else:if isKeyTrigger(keyRight) & mEscKeyCounterR {
 		mEscKeyCounterR = 0
 		mMoveX = escapeX
 		mAction = actionEscape
 	}
-	else : if isKeyDown(keyShift) & isKeyDown(keyLeft) {
-		mMoveX = -sprintX
-		mAction = actionSprint
+	else:if isKeyDown(keyShift) & isKeyDown(keyLeft) {
+		playerChangeAct thismod, actionSprint, 0, dirLeft
 	}
 	else:if isKeyDown(keyShift) & isKeyDown(keyRight) {
-		mMoveX = sprintX
-		mAction = actionSprint
+		playerChangeAct thismod, actionSprint, 0, dirRight
 	}
 	else:if isKeyDown(keyLeft) {
 		mMoveX = -walkX
-		mAction = actionWalk
+		playerChangeAct thismod, actionWalk, 0, dirLeft
 	}
 	else:if isKeyDown(keyRight) {
 		mMoveX = walkX
-		mAction = actionWalk
+		playerChangeAct thismod, actionWalk, 0, dirRight
+	}
+	else {
+		playerChangeAct thismod, actionStop, 0, mDirection
 	}
 
 	if isKeyTrigger(keyLeft) {
@@ -91,36 +215,94 @@
 	if mEscKeyCounterL : mEscKeyCounterL--
 	if mEscKeyCounterR : mEscKeyCounterR--
 
-	if mAction == actionEscape {
-		mX += mMoveX
-		mAction = actionStop
-	}
-	else {
-		mX += mMoveX
+	return
+
+
+#enum sprintReady = 0
+#enum sprintSprint
+#enum sprintSlip
+#enum sprintStop
+
+#const sprintReadyCount (10)
+#const sprintSlipCount (15)
+#const sprintStopCount (10)
+
+#modfunc playerUpdateSprint
+
+	if mActionSub != sprintSlip & mActionSub != sprintStop{
+		if mDirection == dirLeft & isKeyUp(keyLeft) | isKeyUp(keyShift) {
+			playerChangeAct thismod, mAction, sprintSlip, mDirection
+		}
+		if mDirection == dirRight & isKeyUp(keyRight) | isKeyUp(keyShift) {
+			playerChangeAct thismod, mAction, sprintSlip, mDirection
+		}
 	}
 
-	mX = limit(mX, xLimitMin, xLimitMax)
-
-	if isKeyTrigger(keySpace) {
-		repeat length(bullets)
-			if bulletIsActive(bullets(cnt)) == false {
-				bulletFire bullets(cnt), mX, mY, dirUp
-				break
+	if mActionSub == sprintReady {
+		if mIsActionChange {
+			mActionCounter = sprintReadyCount
+			if mDirection == dirLeft : anim=aSpLReady : else : anim=aSpRReady
+			animChange mAnim, sAnimDatas, anim
+		}
+		mActionCounter--
+		if mActionCounter == 0 {
+			playerChangeAct thismod, actionSprint, sprintSprint, mDirection
+		}
+	}
+	else : if mActionSub == sprintSprint {
+		if mIsActionChange {
+			if mDirection == dirLeft {
+				animChange mAnim, sAnimDatas, aSpLSprint
+				mMoveX = -sprintX
+			} else {
+				animChange mAnim, sAnimDatas, aSpRSprint
+				mMoveX = sprintX
 			}
-		loop
+		}
+		mX += mMoveX
+	}
+	else : if mActionSub == sprintSlip {
+		if mIsActionChange {
+			mActionCounter = sprintSlipCount
+			if mDirection == dirLeft {
+				animChange mAnim, sAnimDatas, aSpLSlip
+				mMoveX = -sprintSlipX
+			} else {
+				animChange mAnim, sAnimDatas, aSpRSlip
+				mMoveX = sprintSlipX
+			}
+		}
+		mActionCounter--
+		if mActionCounter == 0 {
+			playerChangeAct thismod, mAction, sprintStop, mDirection
+		}
+		mX += mMoveX
+	}
+	else : if mActionSub == sprintStop {
+		if mIsActionChange {
+			mActionCounter = sprintStopCount
+		}
+		mActionCounter--
+		if mActionCounter == 0 {
+			playerChangeAct thismod, actionStop, 0, mDirection
+		}
 	}
 
 	return
 
-#modfunc playerDraw
-	if mIsActive == false : return
 
-	pos mX, mY
-	celput mImageID, 0
+#modfunc playerUpdateAction
+	if mAction == actionStop {
+	} else : if mAction == actionWalk {
+		mX += mMoveX
+	} else : if mAction == actionSprint {
+		playerUpdateSprint thismod
+	} else : if mAction == actionEscape {
+		
+	} else : if mAction == actionCreeping {
+	}
+
 	return
-
-
-
 
 #modfunc playerDisable
 	mIsActive = false

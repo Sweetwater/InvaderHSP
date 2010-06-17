@@ -13,9 +13,9 @@
 #enum statePlay
 
 #deffunc loadGame
-	celload "./data/myShip.bmp"
+	celload "./data/nico.bmp"
 	gMyShipImageID = stat
-	celdiv gMyShipImageID, 32,32, 16,16
+	celdiv gMyShipImageID, 64,64, 32,32
 
 	celload "./data/enemy.bmp"
 	gEnemyImageID = stat
@@ -191,7 +191,7 @@
 
 
 #deffunc drawGame
-	gmode 2
+	gmode 4,,,255
 
 	playerDraw gPlayer
 

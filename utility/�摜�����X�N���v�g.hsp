@@ -1,0 +1,57 @@
+goto *main
+
+#include "hspmath.as"
+
+#deffunc a str _fileName
+	mes _fileName
+	return
+
+*main
+	dirlist files,"*.bmp"
+	mes files
+
+	split files, "\n", splitFiles
+
+	chipSize = 64
+	fileSqrt = sqrt(length(splitFiles))
+	xNum = ceil(fileSqrt)
+	yNum = floor(fileSqrt)
+	screenWidth = chipSize * xNum
+	screenHeight = chipSize * yNum
+
+	screen 0, screenWidth, screenHeight
+
+	buffer 1
+	
+	fileIndex = 0
+	repeat yNum
+		y = cnt
+		repeat xNum
+			x = cnt
+			if splitFiles(fileIndex) == "":break
+
+			gsel 1
+			picload splitFiles(fileIndex)
+			imageWidth = ginfo_winx
+			imageHeight = ginfo_winy
+			xPos = x * chipSize
+			yPos = y * chipSize
+
+			gsel 0
+			pos xPos, yPos
+			gzoom chipSize,chipSize, 1, 0,0, imageWidth, imageHeight, 1
+mes fileIndex
+			fileIndex++
+		loop
+	loop
+
+	newFileName = getpath(dir_cur, 8) + ".bmp"
+	bmpsave newFileName
+
+//	mes "ìùçáê¨å˜ÅIÅI"
+//	button "OK", *endLable
+//	stop
+//
+//*endLable
+	end
+
