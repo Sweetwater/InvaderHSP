@@ -2,7 +2,7 @@
 #include "./source/Game.hsp"
 
 #deffunc initializeSystem
-	screen mainWindowID, screenWidth, screenHeight,,0,-20
+	screen mainWindowID, screenWidth, screenHeight,,22,75
 	randomize
 	return
 
@@ -27,6 +27,14 @@
 	gTriggerKeyState = 0
 	gReleaseKeyState = 0
 
+	gOldMouseX = mousex
+	gNewMouseX = mousex
+	gMouseMoveX = mousex
+
+	gOldMouseY = mousey
+	gNewMouseY = mousey
+	gMouseMoveY = mousey
+
 	return
 
 #deffunc updateInput
@@ -39,6 +47,14 @@
 
 	gTriggerKeyState = (gOldKeyState ^ $FFFFFFFF) & gNewKeyState
 	gReleaseKeyState = (gNewKeyState ^ $FFFFFFFF) & gOldKeyState
+
+	gOldMouseX = gNewMouseX
+	gNewMouseX = mousex
+	gMouseMoveX = gNewMouseX - gOldMouseX
+
+	gOldMouseY = gNewMouseY
+	gNewMouseY = mousey
+	gMouseMoveY = gNewMouseY - gOldMouseY
 
 	return
 
@@ -53,6 +69,19 @@
 
 #defcfunc isKeyRelease int key
 	return (gReleaseKeyState >> key) & 0x00000001
+
+#defcfunc getMouseX
+	return gNewMouseX
+
+#defcfunc getMouseY
+	return gNewMouseY
+
+#defcfunc getMouseMoveX
+	return gMouseMoveX
+
+#defcfunc getMouseMoveY
+	return gMouseMoveY
+
 
 
 
