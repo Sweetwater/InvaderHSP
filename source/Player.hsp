@@ -68,7 +68,7 @@
 #enum aAiL0
 
 
-#modinit int _imageID, var _rocket
+#modinit int _imageID
 	mImageID = _imageID
 	mX = startX
 	mY = baseY
@@ -78,8 +78,6 @@
 	mDirection = dirLeft
 	mAction = -1
 	mIsActive = true
-
-	mRocket = _rocket
 
 	playerInitAnimData thismod
 	newmod mAnim, ModAnimation
@@ -101,14 +99,10 @@
 	playerUpdateAction thismod
 	mX = limit(mX, xLimitMin, xLimitMax)
 
-	rocketUpdate mRocket
-
 	return
 
 #modfunc playerDraw
 	if mIsActive == false : return
-
-	rocketDraw mRocket
 
 	chipIndex = animUpdate(mAnim, sAnimDatas)
 
@@ -207,7 +201,7 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	if mEscKeyCounterL : mEscKeyCounterL--
 	if mEscKeyCounterR : mEscKeyCounterR--
 
-	if mAction == actionSprint | mAction == actionEscape {
+	if mAction == actionSprint | mAction == actionEscape | mAction == actionAIM {
 		return
 	}
 
@@ -377,18 +371,21 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 			playerChangeAct thismod, actionCreeping, 0, mDirection
 		}
 	}
-
 	return
 
 
+#const aimStopCount (60)
+
 #modfunc playerUpdateAim
-	if isKeyUp(keyUp) {
-		playerChangeAct actionStop, 0, mDirection
-//		mouse
+	if mIsActionChange {
+		mActionCounter = 0
+		mRocket = -1
+		getPickupRocket thismod, mX, mY
 	}
 
-	if mIsActionChange {
-		rocketEnable mRocket
+	if mActionCounter != 0 {
+		mActionCounter--
+		return
 	}
 
 	reticleX = getMouseX()
@@ -403,15 +400,27 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	tmp = floor((dgree+15) / 30)
 	angleIndex = limit(tmp, 0, 6)
 
-//circle _reticleX-5, _reticleY-5, _reticleX+5, _reticleY+5, 1
-
-	rocketSetPos mRocket, (mX+14), mY
-	rocketSetAngle mRocket, -angle
-	if isKeyTrigger(mouseLeft) {
-		rocketFire mRocket
+	if vartype(mRocket) == vartype("struct") {
+		rocketSetPos mRocket, (mX+14), mY
+		rocketSetAngle mRocket, -angle
+		if isKeyTrigger(mouseLeft) {
+			rocketFire mRocket
+			mActionCounter = aimStopCount
+		}
 	}
-
 	animChange mAnim, sAnimDatas, aAiR0 + angleIndex
+
+	if isKeyUp(keyUp) {
+		playerChangeAct thismod, actionStop, 0, mDirection
+
+		if vartype(mRocket) == vartype("struct") {
+			if rocketIsReady(mRocket) {
+				rocketRelease mRocket
+			} else {
+				rocketDisposal mRocket
+			}
+		}
+	}
 
 	return
 
@@ -447,6 +456,10 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 
 #modcfunc playerGetY
 	return mY
+
+#modfunc playerSetRocket var _rocket
+	mRocket = _rocket
+	return
 
 #global
 

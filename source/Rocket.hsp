@@ -3,44 +3,102 @@
 
 #include "./source/Define.hsp"
 #include "./source/Bullet.hsp"
+#include "./source/Animation.hsp"
 
-#module ModRocket mX, mY, mBullet, mAngle, mIsEmpty, mIsActive, mImageID
+#module ModRocket mX, mY, mBullet, mAngle, mMoveX, mMoveY, mState, mAnim, mImageID
+
+#enum stateDisable = 0
+#enum stateReady
+#enum stateEmpty
+#enum stateRelease
+#enum stateDisposal
+
+#enum aReady = 0
+#enum aEmpty
+#enum aDisposal
+
+#const xLimitMin (0)
+#const xLimitMax (screenWidth)
+
+#const groundY (460)
+
+#const releaseX (1.1)
+#const releaseY (-2.1)
+#const gravity  (0.08)
+
+#const rotat 0.4
 
 #modinit int _imageID, var _bullet
 	mImageID = _imageID
 	mBullet = _bullet
-	mIsEmpty = true
-	mIsActive = false
+	mState = stateDisable
+	
+	rocketInitAnimData thismod
+	newmod mAnim, ModAnimation
 	return
 
 #modterm
 	return
 
 #modfunc rocketUpdate
-	if mIsActive == false : return
+	if mState == stateDisable : return
+
+	if mState == stateRelease | mState == stateDisposal {
+		mX += mMoveX
+		mY += mMoveY
+		mMoveY += gravity
+		mAngle += rotat
+		if mY > groundY {
+			mY = groundY
+			mAngle = 0
+			
+			if mState == stateRelease {
+				mX = limit(mx, xLimitMin, xLimitMax)
+				mState = stateReady
+			}
+			else : if mState == stateDisposal {
+				mState = stateDisable
+			}
+		}
+	}
 	return
 
 #modfunc rocketDraw
-	if mIsActive == false : return
+	if mState == stateDisable : return
+
+	chip = animUpdate(mAnim, sAnimDatas)
+
 	pos mX, mY
 	color transparence
-	if mIsEmpty : chip=1 : else : chip=0
 	celput mImageID, chip,,,mAngle
 	return
 
 
+#modfunc rocketInitAnimData
+	if sIsAnimDate : return
+	sIsAnimDate = true
+
+	_dataNum = 8
+	_dataSize = 8
+	dim _animDatas, _dataNum * _dataSize
+	_animDatas(aReady*8)    = 0,-1
+	_animDatas(aEmpty*8)    = 1,-1
+	_animDatas(aDisposal*8) = 1,2, 2,2, -1
+
+	dim sAnimDatas, _dataNum, _dataSize
+	repeat _dataNum
+		i = cnt
+		repeat _dataSize
+			j = cnt
+			sAnimDatas(i,j) = _animDatas(i * _dataNum + j)
+		loop
+	loop
+
+	return
 
 
 #modfunc rocketSetPos int _x, int _y
 	mX = _x
-	mY = _y
-	return
-
-#modfunc rocketSetX int _x
-	mX = _x
-	return
-
-#modfunc rocketSetY int _y
 	mY = _y
 	return
 
@@ -54,34 +112,50 @@
 #modcfunc rocketGetY
 	return mY
 
-#modcfunc rocketIsActive
-	return mIsActive
+#modcfunc rocketIsReady
+	return mState == stateReady
+
+#modcfunc rocketIsDisable
+	return mState == stateDisable
 
 
 
 #modfunc rocketFire
-	if mIsEmpty: return
+	if mState != stateReady : return
 
-	bulletFire2 mBullet, mX, mY, mAngle
-	mIsEmpty = true
-
+	bulletOffset = 15
+	x = cos(mAngle) * bulletOffset + mX
+	y = sin(mAngle) * bulletOffset + mY
+	rBulletFire mBullet, x, y, mAngle
+	mState = stateEmpty
+	animChange mAnim, sAnimDatas, aEmpty
 	return
 
 #modfunc rocketRespawn int _x, int _y
 	mX = _x
-	mY = _y
-	mIsEmpty = false
-	mIsActive = true
+	mY = groundY
+	mAngle = 0
+	mState = stateReady
+	animChange mAnim, sAnimDatas, aReady
+	return
+
+#modfunc rocketRelease
+	if rnd(2) : mMoveX=releaseX : else : mMoveX=-releaseX
+	mMoveY = releaseY
+	mX = double(mX)
+	mY = double(mY)
+	mState = stateRelease
+	animChange mAnim, sAnimDatas, aReady
+	return
+
+#modfunc rocketDisposal
+	rocketRelease thismod
+	mState = stateDisposal
+	animChange mAnim, sAnimDatas, aDisposal
 	return
 
 #modfunc rocketDisable
-	mIsEmpty = true
-	mIsActive = false
-	return
-
-#modfunc rocketEnable
-	mIsEmpty = false
-	mIsActive = true
+	mState = stateDisable
 	return
 
 #global

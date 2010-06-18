@@ -7,6 +7,7 @@
 #include "./source/Enemy.hsp"
 #include "./source/Bunker.hsp"
 #include "./source/Rocket.hsp"
+#include "./source/RocketBullet.hsp"
 
 
 #module Game
@@ -26,6 +27,10 @@
 	celload "./data/bullet.bmp"
 	gBulletImageID = stat
 	celdiv gBulletImageID, 8,8, 4,4
+
+	celload "./data/rocketBullet.bmp"
+	gRBulletImageID = stat
+	celdiv gRBulletImageID, 28,9, 17,4
 
 	celload "./data/rpg7.bmp"
 	gRocketImageID = stat
@@ -51,9 +56,6 @@
 
 	//dimtype bullets, vartype("struct"),32
 
-	repeat playerBulletMaxNum
-		newmod gPlayerBullets, ModBullet, gBulletImageID
-	loop
 	repeat enemyBulletMaxNum
 		newmod gEnemyBullets, ModBullet, gBulletImageID
 	loop
@@ -62,11 +64,14 @@
 		newmod gBunkers, ModBunker, gBunkerImageID
 	loop
 	
+	repeat playerBulletMaxNum
+		newmod gPlayerBullets, ModRocketBullet, gRBulletImageID
+	loop
 	repeat rocketMaxNum
 		newmod gRockets, ModRocket, gRocketImageID, gPlayerBullets(cnt)
 	loop
 
-	newmod gPlayer, ModPlayer, gMyShipImageID, gRockets
+	newmod gPlayer, ModPlayer, gMyShipImageID
 
 // TODO : 引数で渡した配列の保持の方法を調べる
 //	playerSetBullets player, bullets
@@ -173,10 +178,9 @@
 	}
 	else {
 		repeat length(gRockets)
-			if rocketIsActive(gRockets(cnt)) == false{
+			if rocketIsDisable(gRockets(cnt)) {
 				x = rnd(screenWidth)
-				y = rocketRespawnY
-				rocketRespawn gRockets(cnt), x, y
+				rocketRespawn gRockets(cnt), x
 				rocketRespawnCounter = rocketRespawnCount
 				break
 			}
@@ -198,7 +202,7 @@
 	loop
 
 	repeat length(gPlayerBullets)
-		bulletUpdate gPlayerBullets(cnt)
+		rBulletUpdate gPlayerBullets(cnt)
 	loop
 	repeat length(gEnemyBullets)
 		bulletUpdate gEnemyBullets(cnt)
@@ -209,9 +213,9 @@
 	loop
 
 	checkHitPlayer gPlayer, gEnemyBullets
-	checkHitEnemy gEnemys, gPlayerBullets
+//	checkHitEnemy gEnemys, gPlayerBullets
 	checkHitBunker gBunkers, gEnemyBullets
-	checkHitBunker gBunkers, gPlayerBullets
+//	checkHitBunker gBunkers, gPlayerBullets
 	return
 
 
@@ -233,11 +237,10 @@
 
 	gmode 1
 	pos 0,0
-//	celput gBackgroundImageID, 0, 2, 2
+	celput gBackgroundImageID, 0, 2, 2
 
 	gmode 4,,,255
 
-logmes "length :" + length(gRockets)
 	repeat length(gRockets)
 		rocketDraw gRockets(cnt)
 	loop
@@ -249,7 +252,7 @@ logmes "length :" + length(gRockets)
 	loop
 
 	repeat length(gPlayerBullets)
-		bulletDraw gPlayerBullets(cnt)
+		rBulletDraw gPlayerBullets(cnt)
 	loop
 	repeat length(gEnemyBullets)
 		bulletDraw gEnemyBullets(cnt)
@@ -261,6 +264,25 @@ logmes "length :" + length(gRockets)
 
 	return
 
+
+
+#deffunc getPickupRocket var _player, int _x, int _y
+	repeat length(gRockets)
+		if rocketIsReady(gRockets(cnt)) == false: continue
+
+		x = rocketGetX(gRockets(cnt))
+		y = rocketGetX(gRockets(cnt))
+		diffX = x - _x
+		diffY = y - _y
+		if abs(diffX) < pickupRageX & abs(diffX) < pickupRageY {
+			// モジュール変数型を返せないので
+			// こちらからプレイヤーのメソッドを呼び出す
+			rocket = gRockets(cnt)
+			playerSetRocket _player, rocket
+			break
+		}
+	loop
+	return
 
 #global
 

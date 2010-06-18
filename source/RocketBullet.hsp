@@ -1,0 +1,108 @@
+#ifndef ___RocketBullet___
+#define ___RocketBullet___
+
+#include "./source/Define.hsp"
+#include "./source/Animation.hsp"
+
+#module ModRocketBullet mX, mY, mSpeed, mGravity, mAngle, mAnim, mIsActive, mImageID
+
+#include "hspmath.as"
+
+#const maxSpeed   6.0
+#const firstSpeed 1.1
+#const accel      0.1
+#const gravity    0.02
+
+#const xLimitMin 0
+#const xLimitMax screenWidth
+#const yLimitMin 0
+#const yLimitMax screenHeight
+
+#enum aFire = 0
+
+#modinit int imageID
+	mImageID = imageID
+	mMoveX = 0.0
+	mMoveY = 0.0
+	mSpeed = 0.0
+	mAngle = 0.0
+	mIsActive = false
+
+	rBulletInitAnimData thimod
+	newmod mAnim, ModAnimation
+	return
+
+#modterm
+	return
+
+#modfunc rBulletUpdate
+	if mIsActive == false : return
+
+	mSpeed += accel
+	if mSpeed > maxSpeed : mSpeed = maxSpeed
+	mMoveX = cos(mAngle) * mSpeed
+	mMoveY = sin(mAngle) * mSpeed + mGravity
+	mGravity += gravity
+
+	mX += mMoveX
+	mY += mMoveY
+	mX = limitf(mX, xLimitMin, xLimitMax)
+	mY = limitf(mY, yLimitMin, yLimitMax)
+	intX = int(mX)
+	intY = int(mY)
+	if (intX = xLimitMin) | (intX = xLimitMax) : mIsActive = false
+	if (intY = yLimitMin) | (intY = yLimitMax) : mIsActive = false
+	return
+
+#modfunc rBulletDraw
+	if mIsActive == false : return
+
+	chip = animUpdate(mAnim, sAnimDatas)
+
+	pos round(mX), round(mY)
+	color transparence
+	celput mImageID, chip, ,, mAngle
+	return
+
+#modfunc rBulletInitAnimData
+	if sIsAnimData : return
+	sIsAnimData = true
+
+	dim sAnimDatas, 2, 5
+	sAnimDatas(aFire, 0) = 0
+	sAnimDatas(aFire, 1) = 3
+	sAnimDatas(aFire, 2) = 1
+	sAnimDatas(aFire, 3) = 3
+	sAnimDatas(aFire, 4) = -1
+	return
+
+#modcfunc rBulletGetX
+	return mX
+
+#modcfunc rBulletGetY
+	return mY
+
+#modcfunc rBulletIsActive
+	return mIsActive
+
+
+#modfunc rBulletFire double _x, double _y, double _angle
+	if mIsActive : return
+
+	mX = _x
+	mY = _y
+	mAngle = _angle
+	mSpeed = firstSpeed
+	mGravity = 0.0
+	mIsActive = true
+	animChange mAnim, sAnimDatas, aFire
+	return
+
+#modfunc rBulletDisable
+	mIsActive = false
+	return
+
+#global
+
+
+#endif
