@@ -4,15 +4,22 @@
 
 #include "./source/Define.hsp"
 
-#module ModBullet mX, mY, mDirection, mIsActive, mImageID
+#module ModBullet mX, mY, mMoveX, mMoveY, mAngle, mDirection, mIsActive, mImageID
 
-#const moveY 4
+#include "hspmath.as"
 
+#const speed 6
+#const gravity 0.04
+
+#const xLimitMin 0
+#const xLimitMax screenWidth
 #const yLimitMin 0
 #const yLimitMax screenHeight
 
 #modinit int imageID
 	mImageID = imageID
+	mMoveX = 0
+	mMoveY = 0
 	mIsActive = false
 	return
 
@@ -22,19 +29,22 @@
 #modfunc bulletUpdate
 	if mIsActive == false : return
 
-	if mDirection == dirUp:mY -= moveY
-	if mDirection == dirDown:mY += moveY
+	mX += mMoveX
+	mY += mMoveY
+	mMoveY += gravity
 
-	mY = limit(mY, yLimitMin, yLimitMax)
-	if (mY = yLimitMin) | (mY = yLimitMax) {
-		mIsActive = false
-	}
+	mX = limitf(mX, xLimitMin, xLimitMax)
+	mY = limitf(mY, yLimitMin, yLimitMax)
+	intX = int(mX)
+	intY = int(mY)
+	if (intX = xLimitMin) | (intX = xLimitMax) : mIsActive = false
+	if (intY = yLimitMin) | (intY = yLimitMax) : mIsActive = false
 	return
 
 #modfunc bulletDraw
 	if mIsActive == false : return
-	pos mX, mY
-	celput mImageID, 0
+	pos round(mX), round(mY)
+	celput mImageID, 0, ,, mAngle
 	return
 
 
@@ -48,11 +58,24 @@
 #modcfunc bulletIsActive
 	return mIsActive
 
-#modfunc bulletFire int x, int y, int direction
+#modfunc bulletFire int _x, int _y, int _direction
 	if mIsActive : return
-	mX = x
-	mY = y
-	mDirection = direction
+
+	mX = _x
+	mY = _y
+	mMoveX = 0
+	if _direction == dirUp : mMoveY = -speed : else : mMoveY = speed
+	mIsActive = true
+	return
+
+#modfunc bulletFire2 int _x, int _y, double _angle
+	if mIsActive : return
+
+	mX = _x
+	mY = _y
+	mMoveX = cos(_angle) * speed
+	mMoveY = sin(_angle) * speed
+	mAngle = _angle
 	mIsActive = true
 	return
 

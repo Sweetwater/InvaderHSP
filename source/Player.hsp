@@ -1,10 +1,11 @@
 #ifndef ___Player___
 #define ___Player___
 
-
 #include "./source/Define.hsp"
 #include "./source/Bullet.hsp"
+#include "./source/Rocket.hsp"
 #include "./source/Animation.hsp"
+
 
 #module ModPlayer	mX, mY,				\
 					mMoveX, mMoveY,		\
@@ -14,11 +15,15 @@
 					mAction,			\
 					mActionSub,			\
 					mActionCounter,		\
+					mAngle,				\
 					mIsOldActionChange,	\
 					mIsActionChange,	\
 					mIsActive,			\
 					mAnim,				\
+					mRocket,			\
 					mImageID
+
+#include "hspmath.as"
 
 #const startX screenCenterX
 #const baseY 450
@@ -36,6 +41,7 @@
 #enum actionSprint
 #enum actionCreeping
 #enum actionEscape
+#enum actionAIM
 
 #enum aStL = 0
 #enum aStR
@@ -53,16 +59,27 @@
 #enum aEsStopR
 #enum aCrL
 #enum aCrR
+#enum aAiR0
+#enum aAiR1
+#enum aAiR2
+#enum aAiU
+#enum aAiL2
+#enum aAiL1
+#enum aAiL0
 
-#modinit int imageID
-	mImageID = imageID
+
+#modinit int _imageID, var _rocket
+	mImageID = _imageID
 	mX = startX
 	mY = baseY
 	mMoveX = 0
 	mMoveY = 0
+	mAngle = 0
 	mDirection = dirLeft
 	mAction = -1
 	mIsActive = true
+
+	mRocket = _rocket
 
 	playerInitAnimData thismod
 	newmod mAnim, ModAnimation
@@ -73,7 +90,7 @@
 #modterm
 	return
 
-#modfunc playerUpdate array bullets
+#modfunc playerUpdate
 	if mIsActive == false : return
 
 	playerControllAction thismod
@@ -84,19 +101,14 @@
 	playerUpdateAction thismod
 	mX = limit(mX, xLimitMin, xLimitMax)
 
-	if isKeyTrigger(keySpace) {
-//		repeat length(bullets)
-//			if bulletIsActive(bullets(cnt)) == false {
-//				bulletFire bullets(cnt), mX, mY, dirUp
-//				break
-//			}
-//		loop
-	}
+	rocketUpdate mRocket
 
 	return
 
 #modfunc playerDraw
 	if mIsActive == false : return
+
+	rocketDraw mRocket
 
 	chipIndex = animUpdate(mAnim, sAnimDatas)
 
@@ -118,14 +130,18 @@
 	dim _animDatas, _dataNum * _dataSize
 	_animDatas(aStL*32)       = 6,16, 7,16, -1
 	_animDatas(aStR*32)       = 8,16, 9,16, -1
+
 	_animDatas(aWlL*32)       = 0,6, 1,6, 2,6, -1
 	_animDatas(aWlR*32)       = 3,6, 4,6, 5,6, -1
+
 	_animDatas(aSpReadyL*32)  = 6,-1
 	_animDatas(aSpSprintL*32) = 10,2, 11,2, 12,2, -1
 	_animDatas(aSpSlipL*32)   = 20,-1
+
 	_animDatas(aSpReadyR*32)  = 8,-1
 	_animDatas(aSpSprintR*32) = 13,2, 14,2, 15,2, -1
 	_animDatas(aSpSlipR*32)   = 25,-1
+
 	_animDatas(aEsJumpL*32)   = 20,4, 21,4, 22,4, 23,-1 
 	_animDatas(aEsStopL*32)   = 16,-1
 	_animDatas(aEsJumpR*32)   = 24,2, 25,2, 26,2, 27,-1
@@ -133,6 +149,14 @@
 
 	_animDatas(aCrL*32)       = 16,-1
 	_animDatas(aCrR*32)       = 17,-1
+
+	_animDatas(aAiR0*32)      = 36,-1
+	_animDatas(aAiR1*32)      = 35,-1
+	_animDatas(aAiR2*32)      = 34,-1
+	_animDatas(aAiU*32)       = 33,-1
+	_animDatas(aAiL2*32)      = 32,-1
+	_animDatas(aAiL1*32)      = 31,-1
+	_animDatas(aAiL0*32)      = 30,-1
 
 	dim sAnimDatas, _dataNum, _dataSize
 	repeat _dataNum
@@ -175,7 +199,6 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 		animChange mAnim, sAnimDatas, anim
 	}
 	
-
 	return
 
 
@@ -191,8 +214,14 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	mMoveX = 0
 	mMoveY = 0
 
-	if isKeyDown(keyDown) {
-		playerChangeAct thismod, actionCreeping, 0, mDirection
+	if isKeyDown(keyUp) {
+		playerChangeAct thismod, actionAIM, 0, mDirection
+	}
+	else:if isKeyDown(keyDown) {
+		dir = mDirection
+		if isKeyDown(keyLeft) : dir = dirLeft
+		if isKeyDown(keyRight) : dir = dirRight
+		playerChangeAct thismod, actionCreeping, 0, dir
 	}
 	else:if isKeyTrigger(keyLeft) & mEscKeyCounterL != 0 {
 		mEscKeyCounterL = 0
@@ -352,15 +381,59 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	return
 
 
+#modfunc playerUpdateAim
+	if isKeyUp(keyUp) {
+		playerChangeAct actionStop, 0, mDirection
+//		mouse
+	}
+
+	if mIsActionChange {
+	}
+
+	reticleX = getMouseX()
+	reticleY = getMouseY()
+
+	diffX = reticleX - mX
+	diffY = reticleY - mY
+	if diffY > 0 : diffY = 0
+	angle = atan(-diffY, diffX)
+	dgree = (angle / M_PI) * 180
+
+	tmp = floor((dgree+15) / 30)
+	angleIndex = limit(tmp, 0, 6)
+
+//circle _reticleX-5, _reticleY-5, _reticleX+5, _reticleY+5, 1
+
+	rocketSetPos mRocket, (mX+14), mY
+	rocketSetAngle mRocket, -angle
+	rocketEnable mRocket
+	animChange mAnim, sAnimDatas, aAiR0 + angleIndex
+
+	if isKeyTrigger(mouseLeft) {
+		rocketFire mRocket
+	}
+
+	return
+
+
 #modfunc playerUpdateAction
-	if mAction == actionStop {
-	} else : if mAction == actionWalk {
+	if mAction == actionAIM {
+		playerUpdateAim thismod
+	}
+	else :if mAction == actionStop {
+		
+	}
+	else : if mAction == actionWalk {
 		mX += mMoveX
-	} else : if mAction == actionSprint {
+	}
+	else : if mAction == actionSprint {
 		playerUpdateSprint thismod
-	} else : if mAction == actionEscape {
+	}
+	else : if mAction == actionEscape {
 		playerUpdateEscape thismod
-	} else : if mAction == actionCreeping {
+	}
+	else : if mAction == actionCreeping {
+		
 	}
 
 	return
