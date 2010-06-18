@@ -4,11 +4,12 @@
 #include "./source/Define.hsp"
 #include "./source/Bullet.hsp"
 
-#module ModRocket mX, mY, mBullet, mAngle, mIsActive, mImageID
+#module ModRocket mX, mY, mBullet, mAngle, mIsEmpty, mIsActive, mImageID
 
 #modinit int _imageID, var _bullet
 	mImageID = _imageID
 	mBullet = _bullet
+	mIsEmpty = true
 	mIsActive = false
 	return
 
@@ -23,7 +24,8 @@
 	if mIsActive == false : return
 	pos mX, mY
 	color transparence
-	celput mImageID, 0,,,mAngle
+	if mIsEmpty : chip=1 : else : chip=0
+	celput mImageID, chip,,,mAngle
 	return
 
 
@@ -58,19 +60,27 @@
 
 
 #modfunc rocketFire
-	if mIsActive == false: return
-logmes "rocketFire"
-	if bulletIsActive(mBullet) == false {
-		bulletFire2 mBullet, mX, mY, mAngle
-	}
+	if mIsEmpty: return
+
+	bulletFire2 mBullet, mX, mY, mAngle
+	mIsEmpty = true
 
 	return
 
+#modfunc rocketRespawn int _x, int _y
+	mX = _x
+	mY = _y
+	mIsEmpty = false
+	mIsActive = true
+	return
+
 #modfunc rocketDisable
+	mIsEmpty = true
 	mIsActive = false
 	return
 
 #modfunc rocketEnable
+	mIsEmpty = false
 	mIsActive = true
 	return
 

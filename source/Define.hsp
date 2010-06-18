@@ -45,6 +45,10 @@
 #const global enemyBulletMaxNum (2)
 #const global enemyMaxNum (2)
 
+#const global rocketMaxNum (5)
+#const global rocketRespawnCount (120)
+#const global rocketRespawnY (460)
+
 #const global enemyStartX (60)
 #const global enemyStartY (80)
 

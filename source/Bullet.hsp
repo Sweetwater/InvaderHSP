@@ -4,12 +4,14 @@
 
 #include "./source/Define.hsp"
 
-#module ModBullet mX, mY, mMoveX, mMoveY, mAngle, mDirection, mIsActive, mImageID
+#module ModBullet mX, mY, mSpeed, mGravity, mAngle, mDirection, mIsActive, mImageID
 
 #include "hspmath.as"
 
-#const speed 6
-#const gravity 0.04
+#const maxSpeed   6.0
+#const firstSpeed 1.1
+#const accel      0.1
+#const gravity    0.02
 
 #const xLimitMin 0
 #const xLimitMax screenWidth
@@ -18,8 +20,10 @@
 
 #modinit int imageID
 	mImageID = imageID
-	mMoveX = 0
-	mMoveY = 0
+	mMoveX = 0.0
+	mMoveY = 0.0
+	mSpeed = 0.0
+	mAngle = 0.0
 	mIsActive = false
 	return
 
@@ -29,10 +33,21 @@
 #modfunc bulletUpdate
 	if mIsActive == false : return
 
+	mSpeed += accel
+	if mSpeed > maxSpeed : mSpeed = maxSpeed
+	mMoveX = cos(mAngle) * mSpeed
+	mMoveY = sin(mAngle) * mSpeed + mGravity
+	mGravity += gravity
+
+dbgMes ,30,"mSpeed   :" + mSpeed
+dbgMes ,44,"mMoveX   :" + mMoveX
+dbgMes ,58,"mMoveY   :" + mMoveY
+dbgMes ,72,"mGravity :" + mGravity
+dbgMes ,86,"accel    :" + accel
+
+
 	mX += mMoveX
 	mY += mMoveY
-	mMoveY += gravity
-
 	mX = limitf(mX, xLimitMin, xLimitMax)
 	mY = limitf(mY, yLimitMin, yLimitMax)
 	intX = int(mX)
@@ -71,11 +86,11 @@
 #modfunc bulletFire2 int _x, int _y, double _angle
 	if mIsActive : return
 
-	mX = _x
-	mY = _y
-	mMoveX = cos(_angle) * speed
-	mMoveY = sin(_angle) * speed
+	mX = double(_x)
+	mY = double(_y)
 	mAngle = _angle
+	mSpeed = firstSpeed
+	mGravity = 0.0
 	mIsActive = true
 	return
 

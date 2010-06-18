@@ -38,7 +38,7 @@
 	if rnd(10) == 0 {
 		repeat length(bullets)
 			if bulletIsActive(bullets(cnt)) == false {
-				bulletFire bullets(cnt), mX, mY, dirDown
+//				bulletFire bullets(cnt), mX, mY, dirDown
 				break
 			}
 		loop

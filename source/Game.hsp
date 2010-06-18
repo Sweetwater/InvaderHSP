@@ -61,9 +61,12 @@
 	repeat bunkerMaxNum
 		newmod gBunkers, ModBunker, gBunkerImageID
 	loop
+	
+	repeat rocketMaxNum
+		newmod gRockets, ModRocket, gRocketImageID, gPlayerBullets(cnt)
+	loop
 
-	newmod gRocket, ModRocket, gRocketImageID, gPlayerBullets
-	newmod gPlayer, ModPlayer, gMyShipImageID, gRocket
+	newmod gPlayer, ModPlayer, gMyShipImageID, gRockets
 
 // TODO : à¯êîÇ≈ìnÇµÇΩîzóÒÇÃï€éùÇÃï˚ñ@Çí≤Ç◊ÇÈ
 //	playerSetBullets player, bullets
@@ -160,12 +163,35 @@
 #deffunc updateInitState
 	resetEnemys gEnemys
 	resetBunkers gBunkers
+	rocketRespawnCounter = rocketRespawnCount
 	state = statePlay
 	return
 
+#deffunc updateRocketRespawn
+	if rocketRespawnCounter {
+		rocketRespawnCounter--
+	}
+	else {
+		repeat length(gRockets)
+			if rocketIsActive(gRockets(cnt)) == false{
+				x = rnd(screenWidth)
+				y = rocketRespawnY
+				rocketRespawn gRockets(cnt), x, y
+				rocketRespawnCounter = rocketRespawnCount
+				break
+			}
+		loop
+	}
+	return
 
 #deffunc updatePlayState
+	updateRocketRespawn
+
 	playerUpdate gPlayer
+
+	repeat length(gRockets)
+		rocketUpdate gRockets(cnt)
+	loop
 
 	repeat length(gEnemys)
 		enemyUpdate gEnemys(cnt), gEnemyBullets
@@ -207,9 +233,14 @@
 
 	gmode 1
 	pos 0,0
-	celput gBackgroundImageID, 0, 2, 2
+//	celput gBackgroundImageID, 0, 2, 2
 
 	gmode 4,,,255
+
+logmes "length :" + length(gRockets)
+	repeat length(gRockets)
+		rocketDraw gRockets(cnt)
+	loop
 
 	playerDraw gPlayer
 

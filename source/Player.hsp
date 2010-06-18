@@ -388,6 +388,7 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	}
 
 	if mIsActionChange {
+		rocketEnable mRocket
 	}
 
 	reticleX = getMouseX()
@@ -406,12 +407,11 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 
 	rocketSetPos mRocket, (mX+14), mY
 	rocketSetAngle mRocket, -angle
-	rocketEnable mRocket
-	animChange mAnim, sAnimDatas, aAiR0 + angleIndex
-
 	if isKeyTrigger(mouseLeft) {
 		rocketFire mRocket
 	}
+
+	animChange mAnim, sAnimDatas, aAiR0 + angleIndex
 
 	return
 
