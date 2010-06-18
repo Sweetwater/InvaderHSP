@@ -21,17 +21,15 @@
 					mImageID
 
 #const startX screenCenterX
-#const startY 450
+#const baseY 450
 
-#const sprintX 10
-#const sprintSlipX 2
-#const walkX 3
-#const escapeX 50
+#const walkX 1
 
 #const escKeyCount 10
 
-#const xLimitMin 0
-#const xLimitMax screenWidth
+#const bodySize 32
+#const xLimitMin 0 + bodySize/2
+#const xLimitMax screenWidth - bodySize/2
 
 #enum actionStop = 0
 #enum actionWalk
@@ -43,26 +41,32 @@
 #enum aStR
 #enum aWlL
 #enum aWlR
-#enum aSpLReady
-#enum aSpLSprint
-#enum aSpLSlip
-#enum aSpRReady
-#enum aSpRSprint
-#enum aSpRSlip
+#enum aSpReadyL
+#enum aSpSprintL
+#enum aSpSlipL
+#enum aSpReadyR
+#enum aSpSprintR
+#enum aSpSlipR
+#enum aEsJumpL
+#enum aEsStopL
+#enum aEsJumpR
+#enum aEsStopR
 #enum aCrL
 #enum aCrR
 
 #modinit int imageID
 	mImageID = imageID
 	mX = startX
-	mY = startY
+	mY = baseY
 	mMoveX = 0
 	mMoveY = 0
 	mDirection = dirLeft
 	mAction = -1
 	mIsActive = true
 
-	playerinitAnim thismod
+	playerInitAnimData thismod
+	newmod mAnim, ModAnimation
+
 	playerChangeAct thismod, actionStop
 	return
 
@@ -72,10 +76,11 @@
 #modfunc playerUpdate array bullets
 	if mIsActive == false : return
 
+	playerControllAction thismod
+
 	mIsActionChange = mIsOldActionChange;
 	mIsOldActionChange = false
 
-	playerCheckAction thismod
 	playerUpdateAction thismod
 	mX = limit(mX, xLimitMin, xLimitMax)
 
@@ -104,35 +109,40 @@
 
 
 
-
-#modfunc playerInitAnim
+#modfunc playerInitAnimData
 	if sIsAnimDate : return
 	sIsAnimDate = true
 
-	dim _animDatas, 32*32
+	_dataNum = 32
+	_dataSize = 32
+	dim _animDatas, _dataNum * _dataSize
 	_animDatas(aStL*32)       = 6,16, 7,16, -1
 	_animDatas(aStR*32)       = 8,16, 9,16, -1
 	_animDatas(aWlL*32)       = 0,6, 1,6, 2,6, -1
 	_animDatas(aWlR*32)       = 3,6, 4,6, 5,6, -1
-	_animDatas(aSpLReady*32)  = 6,-1
-	_animDatas(aSpLSprint*32) = 10,2, 11,2, 12,2, -1
-	_animDatas(aSpLSlip*32)   = 20,-1
-	_animDatas(aSpRReady*32)  = 8,-1
-	_animDatas(aSpRSprint*32) = 13,2, 14,2, 15,2, -1
-	_animDatas(aSpRSlip*32)   = 25,-1
-	_animDatas(aCrL*32)       = 17,-1
-	_animDatas(aCrR*32)       = 18,-1
+	_animDatas(aSpReadyL*32)  = 6,-1
+	_animDatas(aSpSprintL*32) = 10,2, 11,2, 12,2, -1
+	_animDatas(aSpSlipL*32)   = 20,-1
+	_animDatas(aSpReadyR*32)  = 8,-1
+	_animDatas(aSpSprintR*32) = 13,2, 14,2, 15,2, -1
+	_animDatas(aSpSlipR*32)   = 25,-1
+	_animDatas(aEsJumpL*32)   = 20,4, 21,4, 22,4, 23,-1 
+	_animDatas(aEsStopL*32)   = 16,-1
+	_animDatas(aEsJumpR*32)   = 24,2, 25,2, 26,2, 27,-1
+	_animDatas(aEsStopR*32)   = 17,-1
 
-	dim sAnimDatas, 32, 32
-	repeat 32
+	_animDatas(aCrL*32)       = 16,-1
+	_animDatas(aCrR*32)       = 17,-1
+
+	dim sAnimDatas, _dataNum, _dataSize
+	repeat _dataNum
 		i = cnt
-		repeat 32
+		repeat _dataSize
 			j = cnt
-			sAnimDatas(i,j) = _animDatas(i*32+j)
+			sAnimDatas(i,j) = _animDatas(i * _dataNum + j)
 		loop
 	loop
 
-	newmod mAnim, ModAnimation
 	return
 
 
@@ -160,12 +170,19 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 		if mDirection == dirLeft:anim = aWlL : else :anim = aWlR
 		animChange mAnim, sAnimDatas, anim
 	}
+	else : if mAction == actionCreeping {
+		if mDirection == dirLeft:anim = aCrL : else :anim = aCrR
+		animChange mAnim, sAnimDatas, anim
+	}
 	
 
 	return
 
 
-#modfunc playerCheckAction
+#modfunc playerControllAction
+
+	if mEscKeyCounterL : mEscKeyCounterL--
+	if mEscKeyCounterR : mEscKeyCounterR--
 
 	if mAction == actionSprint | mAction == actionEscape {
 		return
@@ -175,17 +192,15 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	mMoveY = 0
 
 	if isKeyDown(keyDown) {
-		mAction = actionCreeping
+		playerChangeAct thismod, actionCreeping, 0, mDirection
 	}
-	else:if isKeyTrigger(keyLeft) & mEscKeyCounterL {
+	else:if isKeyTrigger(keyLeft) & mEscKeyCounterL != 0 {
 		mEscKeyCounterL = 0
-		mMoveX = -escapeX
-		mAction = actionEscape
+		playerChangeAct thismod, actionEscape, 0, dirLeft
 	}
-	else:if isKeyTrigger(keyRight) & mEscKeyCounterR {
+	else:if isKeyTrigger(keyRight) & mEscKeyCounterR != 0{
 		mEscKeyCounterR = 0
-		mMoveX = escapeX
-		mAction = actionEscape
+		playerChangeAct thismod, actionEscape, 0, dirRight
 	}
 	else:if isKeyDown(keyShift) & isKeyDown(keyLeft) {
 		playerChangeAct thismod, actionSprint, 0, dirLeft
@@ -205,18 +220,19 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 		playerChangeAct thismod, actionStop, 0, mDirection
 	}
 
-	if isKeyTrigger(keyLeft) {
-		mEscKeyCounterL = escKeyCount
+	if mAction != actionEscape {
+		if isKeyTrigger(keyLeft) {
+			mEscKeyCounterL = escKeyCount
+		}
+		else : if isKeyTrigger(keyRight) {
+			mEscKeyCounterR = escKeyCount
+		}
 	}
-	else : if isKeyTrigger(keyRight) {
-		mEscKeyCounterR = escKeyCount
-	}
-
-	if mEscKeyCounterL : mEscKeyCounterL--
-	if mEscKeyCounterR : mEscKeyCounterR--
 
 	return
 
+#const sprintX 6
+#const sprintSlipX 2
 
 #enum sprintReady = 0
 #enum sprintSprint
@@ -230,18 +246,19 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 #modfunc playerUpdateSprint
 
 	if mActionSub != sprintSlip & mActionSub != sprintStop{
+		if mActionSub == sprintSprint : asub = sprintSlip : else : asub = sprintStop
 		if mDirection == dirLeft & isKeyUp(keyLeft) | isKeyUp(keyShift) {
-			playerChangeAct thismod, mAction, sprintSlip, mDirection
+			playerChangeAct thismod, mAction, asub, mDirection
 		}
 		if mDirection == dirRight & isKeyUp(keyRight) | isKeyUp(keyShift) {
-			playerChangeAct thismod, mAction, sprintSlip, mDirection
+			playerChangeAct thismod, mAction, asub, mDirection
 		}
 	}
 
 	if mActionSub == sprintReady {
 		if mIsActionChange {
 			mActionCounter = sprintReadyCount
-			if mDirection == dirLeft : anim=aSpLReady : else : anim=aSpRReady
+			if mDirection == dirLeft : anim=aSpReadyL : else : anim=aSpReadyR
 			animChange mAnim, sAnimDatas, anim
 		}
 		mActionCounter--
@@ -252,10 +269,10 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	else : if mActionSub == sprintSprint {
 		if mIsActionChange {
 			if mDirection == dirLeft {
-				animChange mAnim, sAnimDatas, aSpLSprint
+				animChange mAnim, sAnimDatas, aSpSprintL
 				mMoveX = -sprintX
 			} else {
-				animChange mAnim, sAnimDatas, aSpRSprint
+				animChange mAnim, sAnimDatas, aSpSprintR
 				mMoveX = sprintX
 			}
 		}
@@ -265,10 +282,10 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 		if mIsActionChange {
 			mActionCounter = sprintSlipCount
 			if mDirection == dirLeft {
-				animChange mAnim, sAnimDatas, aSpLSlip
+				animChange mAnim, sAnimDatas, aSpSlipL
 				mMoveX = -sprintSlipX
 			} else {
-				animChange mAnim, sAnimDatas, aSpRSlip
+				animChange mAnim, sAnimDatas, aSpSlipR
 				mMoveX = sprintSlipX
 			}
 		}
@@ -291,6 +308,50 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	return
 
 
+#const escJumpX 3
+#const escJumpY -5
+#const escJumpG 1
+#enum escJump = 0
+#enum escStop
+
+#const escStopCount (20)
+
+#modfunc playerUpdateEscape
+	if mActionSub == escJump {
+		if mIsActionChange {
+			mMoveY = escJumpY
+			mActionCounter = escJumpCount
+			if mDirection == dirLeft {
+				animChange mAnim, sAnimDatas, aEsJumpL
+				mMoveX = -escJumpX
+			} else {
+				animChange mAnim, sAnimDatas, aEsJumpR
+				mMoveX = escJumpX
+			}
+		}
+		mX += mMoveX
+		mY += mMoveY
+		mMoveY += escJumpG
+		if mY >= baseY {
+			mY = baseY
+			playerChangeAct thismod, mAction, escStop, mDirection
+		}
+	}
+	else : if mActionSub == escStop {
+		if mIsActionChange {
+			mActionCounter = escStopCount
+			if mDirection == dirLeft : anim=aEsStopL : else : anim=aEsStopR
+			animChange mAnim, sAnimDatas, anim
+		}
+		mActionCounter--
+		if mActionCounter == 0 {
+			playerChangeAct thismod, actionCreeping, 0, mDirection
+		}
+	}
+
+	return
+
+
 #modfunc playerUpdateAction
 	if mAction == actionStop {
 	} else : if mAction == actionWalk {
@@ -298,7 +359,7 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	} else : if mAction == actionSprint {
 		playerUpdateSprint thismod
 	} else : if mAction == actionEscape {
-		
+		playerUpdateEscape thismod
 	} else : if mAction == actionCreeping {
 	}
 
