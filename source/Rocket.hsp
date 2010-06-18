@@ -1,0 +1,80 @@
+#ifndef ___Rocket___
+#define ___Rocket___
+
+#include "./source/Define.hsp"
+#include "./source/Bullet.hsp"
+
+#module ModRocket mX, mY, mBullet, mAngle, mIsActive, mImageID
+
+#modinit int _imageID, var _bullet
+	mImageID = _imageID
+	mBullet = _bullet
+	mIsActive = false
+	return
+
+#modterm
+	return
+
+#modfunc rocketUpdate
+	if mIsActive == false : return
+	return
+
+#modfunc rocketDraw
+	if mIsActive == false : return
+	pos mX, mY
+	color transparence
+	celput mImageID, 0,,,mAngle
+	return
+
+
+
+
+#modfunc rocketSetPos int _x, int _y
+	mX = _x
+	mY = _y
+	return
+
+#modfunc rocketSetX int _x
+	mX = _x
+	return
+
+#modfunc rocketSetY int _y
+	mY = _y
+	return
+
+#modfunc rocketSetAngle double _angle
+	mAngle = _angle
+	return
+
+#modcfunc rocketGetX
+	return mX
+
+#modcfunc rocketGetY
+	return mY
+
+#modcfunc rocketIsActive
+	return mIsActive
+
+
+
+#modfunc rocketFire
+	if mIsActive == false: return
+logmes "rocketFire"
+	if bulletIsActive(mBullet) == false {
+		bulletFire2 mBullet, mX, mY, mAngle
+	}
+
+	return
+
+#modfunc rocketDisable
+	mIsActive = false
+	return
+
+#modfunc rocketEnable
+	mIsActive = true
+	return
+
+#global
+
+
+#endif
