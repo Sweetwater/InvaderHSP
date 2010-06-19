@@ -19,6 +19,16 @@
 	inputCode(keyA) = 65
 	inputCode(keyS) = 83
 	inputCode(keyD) = 68
+	inputCode(keyD0) = 48
+	inputCode(keyD1) = 49
+	inputCode(keyD2) = 50
+	inputCode(keyD3) = 51
+	inputCode(keyD4) = 52
+	inputCode(keyD5) = 53
+	inputCode(keyD6) = 54
+	inputCode(keyD7) = 55
+	inputCode(keyD8) = 56
+	inputCode(keyD9) = 57
 	inputCode(mouseLeft) = 1
 	inputCode(mouseRight) = 2
 

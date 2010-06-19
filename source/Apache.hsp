@@ -1,41 +1,134 @@
 #ifndef ___Apache___
 #define ___Apache___
 
-
 #include "./source/Define.hsp"
+#include "./source/RocketBullet.hsp"
 
 #module ModApache	mX, mY, 			\
 					mTargetX, mTargetY,	\
 					mSpeed,				\
 					mGravity,			\
 					mGravityCount,		\
+					mAction,			\
 					mAngle,				\
 					mState,				\
+					mRBullets,			\
 					mImageID
 
 #define ctype toRadian(%1) (double(%1) * M_PI / 180)
+#const xRadian (M_PI / 180)
 
-#const moveY 4
+#const rBulletNum  (8)
+
 #const gBase  (3.0)
 #const gSwing (0.3)
 #const gInc   (0.04)
 
+#const baseAngle (xRadian * -90)
+
+#const decel (0.1)
+#const accel (0.1)
+#const rotate (xRadian * 1)
+
+#const upSpeed   (4.0)
+#const downSpeed (2.0)
+
+#const forwardSpeed (4.0)
+#const forwardAngle (xRadian * -60)
+
+#const backSpeed (3.5)
+#const backAngle (xRadian * -110)
+
+#const fastForwardSpeed  (10.0)
+#const fastForwardAccel  (3)
+#const fastForwardDecel  (3)
+#const fastForwardRotate (xRadian * 3)
+#const fastForwardAngle  (xRadian * -30)
+
+#const diveSpeed  (0.0)
+#const diveAccel  (4)
+#const diveDecel  (4)
+#const diveRotate (xRadian * 3)
+#const diveAngle  (xRadian * 5)
+
 #enum stateDisable = 0
 #enum stateTargetMove
 
-#modinit int imageID
-	mImageID = imageID
+#enum actionFlight = 0
+#enum actionUp
+#enum actionDown
+#enum actionForward
+#enum actionBack
+#enum actionFastForward
+#enum actionDive
+#enum actionEscape
+
+
+#modinit int _imageID, int _rBulletImageID
+	mImageID = _imageID
 	mState = stateDisable
 	mGravityCount = double(0)
+
+	repeat rBulletNum
+		newmod mRBullets, ModRocketBullet, _rBulletImageID
+	loop
+
 	return
 
 #modterm
 	return
 
+#modfunc apacheActionControll
+	if isKeyTrigger(keyD0):mAction = 0
+	if isKeyTrigger(keyD1):mAction = 1
+	if isKeyTrigger(keyD2):mAction = 2
+	if isKeyTrigger(keyD3):mAction = 3
+	if isKeyTrigger(keyD4):mAction = 4
+	if isKeyTrigger(keyD5):mAction = 5
+	if isKeyTrigger(keyD6):mAction = 6
+	if isKeyTrigger(keyD7):mAction = 7
+	if isKeyTrigger(keyD8):mAction = 8
+	if isKeyTrigger(keyD9):mAction = 9
+	return
+
+
 #modfunc apacheUpdate
 	if mState == stateDisable : return
 
+	apacheActionControll thismod
 	apacheUpdateGravity thismod
+
+	if mAction == actionFlight {
+		_= apacheNearAngle(thismod, baseAngle)
+		_= apacheNearSpeed(thismod, gBase)
+	}
+	else : if mAction == actionUp {
+		_= apacheNearAngle(thismod, baseAngle)
+		_= apacheNearSpeed(thismod, upSpeed)
+	}
+	else : if mAction == actionDown {
+		_= apacheNearAngle(thismod, baseAngle)
+		_= apacheNearSpeed(thismod, downSpeed)
+	}
+	else : if mAction == actionForward {
+		_= apacheNearAngle(thismod, forwardAngle)
+		_= apacheNearSpeed(thismod, forwardSpeed)
+	}
+	else : if mAction == actionBack {
+		_= apacheNearAngle(thismod, backAngle)
+		_= apacheNearSpeed(thismod, backSpeed)
+	}
+	else : if mAction == actionFastForward {
+		isAngleEnd = apacheNearAngle2(thismod, fastForwardAngle, fastForwardRotate)
+		if isAngleEnd : _= apacheNearSpeed2(thismod, fastForwardSpeed, fastForwardAccel, fastForwardDecel)
+	}
+	else : if mAction == actionDive {
+		isAngleEnd = apacheNearAngle2(thismod, diveAngle, diveRotate)
+		if isAngleEnd : _= apacheNearSpeed2(thismod, diveSpeed, diveAccel, diveDecel)
+	}
+
+
+
 
 	_angle = toRadian(1)
 	_speed = 0.1
@@ -55,17 +148,35 @@
 	}
 	
 	mSpeed = limitf(mSpeed, 0, 6)
-	
 
+
+	mX += cos(mAngle) * mSpeed
+	mY += sin(mAngle) * mSpeed
+	mY += mGravity
+
+
+
+
+	if isKeyTrigger(keySpace) {
+		apacheFireRocket thismod
+	}
 
 	if mState == stateTargetMove {
-		apacheUpdateMoveTarget thismod
+//		apacheUpdateMoveTarget thismod
 	}
+
+	repeat length(mRBullets)
+		rBulletUpdate mRBullets(cnt)
+	loop
 
 	return
 
 #modfunc apacheDraw
 	if mState == stateDisable : return
+
+	repeat length(mRBullets)
+		rBulletDraw mRBullets(cnt)
+	loop
 
 	pos mX, mY
 	celput mImageID, 0,,,mAngle
@@ -88,6 +199,62 @@
 
 
 
+#const rocketAngle       (xRadian * 110)
+#const rocketFireOffset1 (-15)
+#const rocketFireOffset2 (5)
+#const rocketFireAngle  (xRadian * 30)
+
+#modfunc apacheFireRocket
+	ddim x,2
+	ddim y,2
+	x(0) = mX + cos(mAngle + rocketFireAngle) * rocketFireOffset1
+	y(0) = mY + sin(mAngle + rocketFireAngle) * rocketFireOffset1
+	x(1) = mX + cos(mAngle + rocketFireAngle) * rocketFireOffset2
+	y(1) = mY + sin(mAngle + rocketFireAngle) * rocketFireOffset2
+	dim index,2
+	fireCnt = 0
+	repeat length(mRBullets)
+		if rBulletIsActive(mRBullets(cnt)) == false {
+			index(fireCnt) = cnt
+			fireCnt++;
+			if fireCnt == 2 : break
+		}
+	loop
+
+	if fireCnt == 2 {
+		rBulletFire mRBullets(index(0)), x(0), y(0), (mAngle + rocketAngle)
+		rBulletFire mRBullets(index(1)), x(1), y(1), (mAngle + rocketAngle)
+	}
+	return
+
+
+#modcfunc apacheNearAngle double _targetAngle
+	if mAngle < _targetAngle : mAngle+=rotate
+	if mAngle > _targetAngle : mAngle-=rotate
+
+	diffAngle = mAngle - _targetAngle
+	return absf(diffAngle) < (angle*2)
+
+#modcfunc apacheNearAngle2 double _targetAngle, double _rotate
+	if mAngle < _targetAngle : mAngle+=_rotate
+	if mAngle > _targetAngle : mAngle-=_rotate
+
+	diffAngle = mAngle - _targetAngle
+	return absf(diffAngle) < (_rotate*2)
+
+#modcfunc apacheNearSpeed double _targetSpeed
+	if mSpeed > _targetSpeed : mSpeed -= decel
+	if mSpeed < _targetSpeed : mSpeed += accel
+
+	diffSpeed = mSpeed - _targetSpeed
+	return absf(diffSpeed) < (accel + decel)
+
+#modcfunc apacheNearSpeed2 double _targetSpeed, double _accel, double _deccel
+	if mSpeed > _targetSpeed : mSpeed -= _decel
+	if mSpeed < _targetSpeed : mSpeed += _accel
+
+	diffSpeed = mSpeed - _targetSpeed
+	return absf(diffSpeed) < (_accel + _decel)
 
 #modfunc apacheUpdateGravity
 	mGravityCount += gInc
@@ -115,7 +282,7 @@
 	mTargetX = 320
 	mTargetY = 240
 	mSpeed = 1.1
-	mAngle = toRadian(-90)
+	mAngle = baseAngle
 	mState = stateTargetMove
 
 	return

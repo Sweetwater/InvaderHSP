@@ -25,6 +25,16 @@
 #enum global keyA
 #enum global keyS
 #enum global keyD
+#enum global keyD0
+#enum global keyD1
+#enum global keyD2
+#enum global keyD3
+#enum global keyD4
+#enum global keyD5
+#enum global keyD6
+#enum global keyD7
+#enum global keyD8
+#enum global keyD9
 #enum global mouseLeft
 #enum global mouseRight
 

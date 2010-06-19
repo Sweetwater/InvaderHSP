@@ -53,7 +53,7 @@
 //	dimtype gEnemys, vartype("struct"), 4,10
 
 	repeat apacheMaxNum
-		newmod gApaches, ModApache, gApacheImageID
+		newmod gApaches, ModApache, gApacheImageID, gRBulletImageID
 	loop
 
 	//dimtype bullets, vartype("struct"),32
@@ -199,7 +199,7 @@
 		repeat length(gApaches)
 			if apacheIsDisable(gApaches(cnt)) {
 				x = rnd(screenWidth)
-				apacheRespawn gApaches(cnt), x, 60
+				apacheRespawn gApaches(cnt), 320, 60
 				apacheRespawnCounter = apacheRespawnCount
 				break
 			}
@@ -255,7 +255,7 @@
 
 	gmode 1
 	pos 0,0
-	celput gBackgroundImageID, 0, 2, 2
+//	celput gBackgroundImageID, 0, 2, 2
 
 	gmode 4,,,255
 
