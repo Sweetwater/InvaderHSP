@@ -1,0 +1,131 @@
+#ifndef ___Apache___
+#define ___Apache___
+
+
+#include "./source/Define.hsp"
+
+#module ModApache	mX, mY, 			\
+					mTargetX, mTargetY,	\
+					mSpeed,				\
+					mGravity,			\
+					mGravityCount,		\
+					mAngle,				\
+					mState,				\
+					mImageID
+
+#define ctype toRadian(%1) (double(%1) * M_PI / 180)
+
+#const moveY 4
+#const gBase  (3.0)
+#const gSwing (0.3)
+#const gInc   (0.04)
+
+#enum stateDisable = 0
+#enum stateTargetMove
+
+#modinit int imageID
+	mImageID = imageID
+	mState = stateDisable
+	mGravityCount = double(0)
+	return
+
+#modterm
+	return
+
+#modfunc apacheUpdate
+	if mState == stateDisable : return
+
+	apacheUpdateGravity thismod
+
+	_angle = toRadian(1)
+	_speed = 0.1
+
+	if isKeyDown(keyA) {
+		mAngle -= _angle
+	}
+	else : if isKeyDown(keyD) {
+		mAngle += _angle
+	}
+
+	if isKeyDown(keyW) {
+		mSpeed += _speed
+	}
+	else : if isKeyDown(keyS) {
+		mSpeed -= _speed
+	}
+	
+	mSpeed = limitf(mSpeed, 0, 6)
+	
+
+
+	if mState == stateTargetMove {
+		apacheUpdateMoveTarget thismod
+	}
+
+	return
+
+#modfunc apacheDraw
+	if mState == stateDisable : return
+
+	pos mX, mY
+	celput mImageID, 0,,,mAngle
+	return
+
+
+
+
+#modcfunc apacheGetX
+	return mX
+
+#modcfunc apacheGetY
+	return mY
+
+#modcfunc apacheIsDisable
+	return mState == stateDisable
+
+#modcfunc apacheIsActive
+	return mState != stateDisable
+
+
+
+
+#modfunc apacheUpdateGravity
+	mGravityCount += gInc
+	if mGravityCount > 360.0 {
+		mGravityCount = double(0)
+	}
+
+	mGravity = sin(mGravityCount) * gSwing + gBase
+
+	return
+
+
+#modfunc apacheUpdateMoveTarget
+
+	mX += cos(mAngle) * mSpeed
+	mY += sin(mAngle) * mSpeed
+	mY += mGravity
+
+	return
+
+#modfunc apacheRespawn double _x, double _y
+	mX = _x
+	mY = _y
+
+	mTargetX = 320
+	mTargetY = 240
+	mSpeed = 1.1
+	mAngle = toRadian(-90)
+	mState = stateTargetMove
+
+	return
+
+#modfunc apacheDisable
+	mState = stateDisable
+	return
+
+
+#global
+
+
+#endif

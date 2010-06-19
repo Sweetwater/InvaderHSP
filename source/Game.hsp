@@ -8,6 +8,7 @@
 #include "./source/Bunker.hsp"
 #include "./source/Rocket.hsp"
 #include "./source/RocketBullet.hsp"
+#include "./source/Apache.hsp"
 
 
 #module Game
@@ -20,9 +21,9 @@
 	gMyShipImageID = stat
 	celdiv gMyShipImageID, 32,32, 16,16
 
-	celload "./data/enemy.bmp"
-	gEnemyImageID = stat
-	celdiv gEnemyImageID, 32,32, 16,16
+	celload "./data/apache.bmp"
+	gApacheImageID = stat
+	celdiv gApacheImageID, 32,75, 17,39
 
 	celload "./data/bullet.bmp"
 	gBulletImageID = stat
@@ -50,8 +51,9 @@
 #deffunc initializeGame
 // TODO : モジュール変数の多次元配列の作成方法を調べる
 //	dimtype gEnemys, vartype("struct"), 4,10
-	repeat enemyMaxNum
-		newmod gEnemys, ModEnemy, gEnemyImageID
+
+	repeat apacheMaxNum
+		newmod gApaches, ModApache, gApacheImageID
 	loop
 
 	//dimtype bullets, vartype("struct"),32
@@ -166,9 +168,10 @@
 
 
 #deffunc updateInitState
-	resetEnemys gEnemys
+//	resetEnemys gEnemys
 	resetBunkers gBunkers
 	rocketRespawnCounter = rocketRespawnCount
+	apacheRespawnCounter = apacheRespawnCount
 	state = statePlay
 	return
 
@@ -188,8 +191,26 @@
 	}
 	return
 
+#deffunc updateApacheRespawn
+	if apacheRespawnCounter {
+		apacheRespawnCounter--
+	}
+	else {
+		repeat length(gApaches)
+			if apacheIsDisable(gApaches(cnt)) {
+				x = rnd(screenWidth)
+				apacheRespawn gApaches(cnt), x, 60
+				apacheRespawnCounter = apacheRespawnCount
+				break
+			}
+		loop
+	}
+	return
+
+
 #deffunc updatePlayState
 	updateRocketRespawn
+	updateApacheRespawn
 
 	playerUpdate gPlayer
 
@@ -197,24 +218,21 @@
 		rocketUpdate gRockets(cnt)
 	loop
 
-	repeat length(gEnemys)
-		enemyUpdate gEnemys(cnt), gEnemyBullets
+	repeat length(gApaches)
+		apacheUpdate gApaches(cnt)
 	loop
 
 	repeat length(gPlayerBullets)
 		rBulletUpdate gPlayerBullets(cnt)
-	loop
-	repeat length(gEnemyBullets)
-		bulletUpdate gEnemyBullets(cnt)
 	loop
 
 	repeat length(gBunkers)
 		bunkerUpdate gBunkers(cnt)
 	loop
 
-	checkHitPlayer gPlayer, gEnemyBullets
+//	checkHitPlayer gPlayer, gEnemyBullets
 //	checkHitEnemy gEnemys, gPlayerBullets
-	checkHitBunker gBunkers, gEnemyBullets
+//	checkHitBunker gBunkers, gEnemyBullets
 //	checkHitBunker gBunkers, gPlayerBullets
 	return
 
@@ -247,15 +265,12 @@
 
 	playerDraw gPlayer
 
-	repeat length(gEnemys)
-		enemyDraw gEnemys(cnt)
+	repeat length(gApaches)
+		apacheDraw gApaches(cnt)
 	loop
 
 	repeat length(gPlayerBullets)
 		rBulletDraw gPlayerBullets(cnt)
-	loop
-	repeat length(gEnemyBullets)
-		bulletDraw gEnemyBullets(cnt)
 	loop
 
 	repeat length(gBunkers)

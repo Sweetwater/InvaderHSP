@@ -45,10 +45,17 @@
 #const global enemyBulletMaxNum (2)
 #const global enemyMaxNum (2)
 
+
+
 #const global rocketMaxNum (5)
 #const global rocketRespawnCount (120)
 #const global pickupRageX (40)
 #const global pickupRageY (40)
+
+
+#const global apacheMaxNum (1)
+#const global apacheRespawnCount (30)
+
 
 #const global enemyStartX (60)
 #const global enemyStartY (80)
