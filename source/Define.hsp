@@ -75,6 +75,9 @@
 #const global bunkerRangeX (16)
 #const global bunkerRangeY (16)
 
+#const global apacheRangeX (22)
+#const global apacheRangeY (16)
+
 #const global cShellRangeX (4)
 #const global cShellRangeY (4)
 #const global cShellDamage (1)

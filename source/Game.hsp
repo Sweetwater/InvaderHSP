@@ -25,9 +25,9 @@
 	gApacheImageID = stat
 	celdiv gApacheImageID, 32,75, 17,39
 
-	celload "./data/bullet.bmp"
-	gBulletImageID = stat
-	celdiv gBulletImageID, 8,8, 4,4
+	celload "./data/cannonShell.bmp"
+	gCShellImageID = stat
+	celdiv gCShellImageID, 16,16, 8,8
 
 	celload "./data/rocketBullet.bmp"
 	gRBulletImageID = stat
@@ -40,10 +40,6 @@
 	celload "./data/bunker.bmp"
 	gBunkerImageID = stat
 	celdiv gBunkerImageID, 50,50, 25,25
-
-	celload "./data/cannonShell.bmp"
-	gCShellImageID = stat
-	celdiv gCShellImageID, 16,16, 8,8
 
 	celload "./data/background.bmp"
 	gBackgroundImageID = stat
@@ -64,12 +60,6 @@
 		newmod gApaches, ModApache, gApacheImageID, gRBulletImageID, gCShellImageID, gBackBufferID
 	loop
 
-	//dimtype bullets, vartype("struct"),32
-
-	repeat enemyBulletMaxNum
-		newmod gEnemyBullets, ModBullet, gBulletImageID
-	loop
-
 	repeat bunkerMaxNum
 		newmod gBunkers, ModBunker, gBunkerImageID
 	loop
@@ -80,7 +70,6 @@
 	repeat rocketMaxNum
 		newmod gRockets, ModRocket, gRocketImageID, gPlayerBullets(cnt)
 	loop
-
 	newmod gPlayer, ModPlayer, gMyShipImageID
 
 // TODO : à¯êîÇ≈ìnÇµÇΩîzóÒÇÃï€éùÇÃï˚ñ@Çí≤Ç◊ÇÈ
@@ -88,13 +77,6 @@
 
 	state = stateInitialize
 
-	return
-
-
-#deffunc resetEnemys array _enemys
-	repeat length(_enemys)
-		enemyReset _enemys(cnt), enemyStartX, enemyStartY
-	loop
 	return
 
 #deffunc resetBunkers array _bunkers
@@ -106,77 +88,7 @@
 	return
 
 
-#defcfunc checkHitBullets int _x, int _y, array _bullets, local _i
-	hitIndex = -1
-	repeat length(_bullets)
-		_i = cnt
-		if bulletIsActive(_bullets(_i)) == false : continue
-
-		bulletX = bulletGetX(_bullets(_i))
-		bulletY = bulletGetY(_bullets(_i))
-		diffX = abs(_x - bulletX)
-		diffY = abs(_y - bulletY)
-
-		isHitX = diffX < enemyBulletRangeX
-		isHitY = diffY < enemyBulletRangeY
-		if (isHitX & isHitY) {
-			hitIndex = _i
-			break
-		}
-	loop
-	return hitIndex
-
-
-#deffunc checkHitBunker array _bunkers, array _bullets, local _i
-	repeat length(_bunkers)
-		_i = cnt
-		if bunkerIsActive(_bunkers(_i)) == false : continue
-
-		bunkerX = bunkerGetX(_bunkers(_i))
-		bunkerY = bunkerGetY(_bunkers(_i))
-
-		hitIndex = checkHitBullets(bunkerX, bunkerY, _bullets)
-		if hitIndex != -1 {
-		   bunkerDisable _bunkers(_i)
-		   bulletDisable _bullets(hitIndex)
-		}
-	loop
-
-	return
-
-
-#deffunc checkHitEnemy array _enemys, array _bullets, local _i
-	repeat length(_enemys)
-		_i = cnt
-		if enemyIsActive(_enemys(_i)) == false : continue
-
-		enemyX = enemyGetX(_enemys(_i))
-		enemyY = enemyGetY(_enemys(_i))
-
-		hitIndex = checkHitBullets(enemyX, enemyY, _bullets)
-		if hitIndex != -1 {
-		   enemyDisable _enemys(_i)
-		   bulletDisable _bullets(hitIndex)
-		}
-	loop
-
-	return
-
-
-#deffunc checkHitPlayer var _player, array _bullets
-	playerX = playerGetX(_player)
-	playerY = playerGetY(_player)
-
-	hitIndex = checkHitBullets(playerX, playerY, _bullets)
-	if hitIndex != -1 {
-	   playerDisable _player
-	   bulletDisable _bullets(hitIndex)
-	}
-	return
-
-
 #deffunc updateInitState
-//	resetEnemys gEnemys
 	resetBunkers gBunkers
 	rocketRespawnCounter = rocketRespawnCount
 	apacheRespawnCounter = apacheRespawnCount
@@ -241,11 +153,8 @@
 		bunkerUpdate gBunkers(cnt)
 	loop
 
-
-//	checkHitPlayer gPlayer, gEnemyBullets
-//	checkHitEnemy gEnemys, gPlayerBullets
-//	checkHitBunker gBunkers, gEnemyBullets
-//	checkHitBunker gBunkers, gPlayerBullets
+	checkHitRBulletApache gPlayerBullets
+	checkHitRBulletBunker gPlayerBullets
 	return
 
 
@@ -370,6 +279,23 @@
 
 
 
+
+#deffunc checkHitRBulletApache array _rBullets
+	repeat length(gApaches)
+		i = cnt
+		if bunkerIsDisable(gApaches(i)) : continue
+
+		aX = bunkerGetX(gApaches(i))
+		aY = bunkerGetY(gApaches(i))
+
+		hitIndex = checkHitRBullets(_rBullets, aX,aY, apacheRangeX,apacheRangeY)
+		if hitIndex != -1 {
+		   apacheDisable gApaches(i)
+		   rBulletDisable _rBullets(hitIndex)
+		}
+	loop
+	return
+	return
 
 
 #deffunc checkHitRBulletPlaer array _rBullets
