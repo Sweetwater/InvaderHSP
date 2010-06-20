@@ -2,6 +2,7 @@
 #define ___Apache___
 
 #include "./source/Define.hsp"
+#include "./source/CannonShell.hsp"
 #include "./source/RocketBullet.hsp"
 
 #module ModApache	mX, mY, 			\
@@ -13,13 +14,16 @@
 					mAction,			\
 					mAngle,				\
 					mState,				\
+					mCAngle,			\
+					mCShells,			\
 					mRBullets,			\
 					mImageID
 
 #define ctype toRadian(%1) (double(%1) * M_PI / 180)
 #const xRadian (M_PI / 180)
 
-#const rBulletNum  (8)
+#const cShellNum  (32)
+#const rBulletNum (8)
 
 #const gBase  (3.0)
 #const gSwing (0.3)
@@ -27,9 +31,13 @@
 
 #const baseAngle (xRadian * -90)
 
+#const maxSpeed (20.1)
 #const decel (0.1)
 #const accel (0.1)
 #const rotate (xRadian * 1)
+
+#const maxCAngle (xRadian * 120)
+#const cRotate   (xRadian * 2)
 
 #const upSpeed   (4.0)
 #const downSpeed (2.0)
@@ -65,11 +73,14 @@
 #enum actionEscape
 
 
-#modinit int _imageID, int _rBulletImageID, int _bufferID
+#modinit int _imageID, int _rBulletImageID, int _cShellImageID, int _bufferID
 	mImageID = _imageID
 	mState = stateDisable
 	mGravityCount = double(0)
 
+	repeat cShellNum
+		newmod mCShells, ModCannonShell, _cShellImageID
+	loop
 	repeat rBulletNum
 		newmod mRBullets, ModRocketBullet, _rBulletImageID
 	loop
@@ -132,42 +143,36 @@
 
 
 
-
-	_angle = toRadian(1)
-	_speed = 0.1
-
 	if isKeyDown(keyA) {
-		mAngle -= _angle
+		//mAngle -= rotate
+		mCAngle -= cRotate
 	}
 	else : if isKeyDown(keyD) {
-		mAngle += _angle
+		//mAngle += rotate
+		mCAngle += cRotate
 	}
 
 	if isKeyDown(keyW) {
-		mSpeed += _speed
+		mSpeed += accel
 	}
 	else : if isKeyDown(keyS) {
-		mSpeed -= _speed
+		mSpeed -= decel
 	}
-	
-	mSpeed = limitf(mSpeed, 0, 6)
 
-
+	mCAngle = limitf(mCAngle, 0, maxCAngle)
+	mSpeed = limitf(mSpeed, 0, maxSpeed)
 
 	xSpeed = mSpeed
 	if mDirection == dirLeft : xSpeed = -mSpeed
-
-	xAngle = mAngle
-	if mDirection == dirLeft : xAngle = -mAngle
 
 	mX += cos(mAngle) * xSpeed
 	mY += sin(mAngle) * mSpeed
 	mY += mGravity
 
-
-
-
-	if isKeyTrigger(keySpace) {
+	if isKeyTrigger(keySpace) & isKeyDown(keyShift) {
+		apacheFireCannon thismod
+	}
+	else : if isKeyTrigger(keySpace) {
 		apacheFireRocket thismod
 	}
 
@@ -175,6 +180,9 @@
 //		apacheUpdateMoveTarget thismod
 	}
 
+	repeat length(mCShells)
+		cShellUpdate mCShells(cnt)
+	loop
 	repeat length(mRBullets)
 		rBulletUpdate mRBullets(cnt)
 	loop
@@ -183,6 +191,9 @@
 #modfunc apacheDraw
 	if mState == stateDisable : return
 
+	repeat length(mCShells)
+		cShellDraw mCShells(cnt)
+	loop
 	repeat length(mRBullets)
 		rBulletDraw mRBullets(cnt)
 	loop
@@ -217,6 +228,28 @@
 #modcfunc apacheIsActive
 	return mState != stateDisable
 
+
+
+#const canonnAngle       (xRadian * 120)
+#const canonnFireAngle   (xRadian * -30)
+#const canonnFireOffset  (-15)
+
+#modfunc apacheFireCannon
+	offsetX = canonnFireOffset
+	if mDirection == dirLeft {
+		offsetX = -canonnFireOffset
+	}
+	x = mX + cos(mAngle + canonnFireAngle) * offsetX
+	y = mY + sin(mAngle + canonnFireAngle) * canonnFireOffset
+
+	angle = mAngle + mCAngle + canonnAngle
+	repeat length(mCShells)
+		if cShellIsActive(mCShells(cnt)) == false {
+			cShellFire mCShells(cnt), x, y, angle, mDirection
+			break
+		}
+	loop
+	return
 
 
 #const rocketAngle       (xRadian * 110)
@@ -318,6 +351,7 @@
 	mSpeed = 1.1
 	mDirection = _direction
 	mAngle = baseAngle
+	mCAngle = double(0)
 	mState = stateTargetMove
 	return
 

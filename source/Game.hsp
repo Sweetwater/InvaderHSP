@@ -41,6 +41,10 @@
 	gBunkerImageID = stat
 	celdiv gBunkerImageID, 50,50, 25,25
 
+	celload "./data/cannonShell.bmp"
+	gCShellImageID = stat
+	celdiv gCShellImageID, 16,16, 8,8
+
 	celload "./data/background.bmp"
 	gBackgroundImageID = stat
 	celdiv gBackgroundImageID, 320,240, 0,0
@@ -57,7 +61,7 @@
 //	dimtype gEnemys, vartype("struct"), 4,10
 
 	repeat apacheMaxNum
-		newmod gApaches, ModApache, gApacheImageID, gRBulletImageID, gBackBufferID
+		newmod gApaches, ModApache, gApacheImageID, gRBulletImageID, gCShellImageID, gBackBufferID
 	loop
 
 	//dimtype bullets, vartype("struct"),32

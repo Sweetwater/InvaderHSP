@@ -1,0 +1,85 @@
+#ifndef ___CannonShell___
+#define ___CannonShell___
+
+#include "./source/Define.hsp"
+
+#module ModCannonShell	mX, mY,				\
+						mDirection,			\
+						mAngle,				\
+						mIsActive,			\
+						mImageID
+
+#include "hspmath.as"
+
+#const speed   6.0
+
+#const xLimitMin 0
+#const xLimitMax screenWidth
+#const yLimitMin 0
+#const yLimitMax screenHeight
+
+#modinit int _imageID
+	mImageID = _imageID
+	mIsActive = false
+	return
+
+#modterm
+	return
+
+#modfunc cShellUpdate
+	if mIsActive == false : return
+
+logmes "x :" + mX
+logmes "y :" + mY
+
+	xSpeed = speed
+	if mDirection == dirLeft : xSpeed = -speed
+
+	moveX = cos(mAngle) * xSpeed
+	moveY = sin(mAngle) * speed
+
+	mX += moveX
+	mY += moveY
+	if (mX < xLimitMin) | (mX > xLimitMax) : mIsActive = false
+	if (mY < xLimitMin) | (mY > xLimitMax) : mIsActive = false
+	return
+
+#modfunc cShellDraw
+	if mIsActive == false : return
+
+	pos round(mX), round(mY)
+	color transparence
+logmes "imageID :" + mImageID
+	celput 7, 0
+	return
+
+
+
+#modcfunc cShellGetX
+	return mX
+
+#modcfunc cShellGetY
+	return mY
+
+#modcfunc cShellIsActive
+	return mIsActive
+
+
+#modfunc cShellFire double _x, double _y, double _angle, int _direction
+	if mIsActive : return
+
+	mX = _x
+	mY = _y
+	mAngle = _angle
+	mDirection = _direction
+	mIsActive = true
+	return
+
+#modfunc cShellDisable
+	mIsActive = false
+	return
+
+#global
+
+
+#endif
