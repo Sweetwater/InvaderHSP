@@ -447,9 +447,6 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 
 	return
 
-#modfunc playerDisable
-	mIsActive = false
-	return
 
 #modcfunc playerGetX
 	return mX
@@ -457,9 +454,21 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 #modcfunc playerGetY
 	return mY
 
+#modcfunc playerIsDisable
+	return mIsActive == false
+
+#modcfunc playerIsActive
+	return mIsActive
+
+
 #modfunc playerSetRocket var _rocket
 	mRocket = _rocket
 	return
+
+#modfunc playerDisable
+	mIsActive = false
+	return
+
 
 #global
 

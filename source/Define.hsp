@@ -52,31 +52,32 @@
 
 
 #const global playerBulletMaxNum (32)
-#const global enemyBulletMaxNum (2)
-#const global enemyMaxNum (2)
 
+#const global bunkerMaxNum    (12)
+#const global bunkerStartX    (40)
+#const global bunkerOffsetX   (60)
+#const global bunkerStartY    (380)
+#const global bunkerMaxShield (10)
+#const global bunkerAnimNum   (5)
 
-
-#const global rocketMaxNum (5)
+#const global rocketMaxNum       (5)
 #const global rocketRespawnCount (120)
+
+#const global apacheMaxNum       (2)
+#const global apacheRespawnCount (15)
+
 #const global pickupRageX (40)
 #const global pickupRageY (40)
 
+#const global playerRangeX (16)
+#const global playerRangeY (16)
 
-#const global apacheMaxNum (2)
-#const global apacheRespawnCount (15)
+#const global bunkerRangeX (16)
+#const global bunkerRangeY (16)
 
-
-#const global enemyStartX (60)
-#const global enemyStartY (80)
-
-#const global enemyBulletRangeX (20)
-#const global enemyBulletRangeY (20)
-
-#const global bunkerMaxNum (12)
-#const global bunkerStartX (40)
-#const global bunkerOffsetX (60)
-#const global bunkerStartY (380)
+#const global cShellRangeX (4)
+#const global cShellRangeY (4)
+#const global cShellDamage (1)
 
 #enum global dirLeft = 0
 #enum global dirRight

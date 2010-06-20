@@ -144,12 +144,12 @@
 
 
 	if isKeyDown(keyA) {
-		//mAngle -= rotate
-		mCAngle -= cRotate
+		mAngle -= rotate
+//		mCAngle -= cRotate
 	}
 	else : if isKeyDown(keyD) {
-		//mAngle += rotate
-		mCAngle += cRotate
+		mAngle += rotate
+//		mCAngle += cRotate
 	}
 
 	if isKeyDown(keyW) {
@@ -169,10 +169,10 @@
 	mY += sin(mAngle) * mSpeed
 	mY += mGravity
 
-	if isKeyTrigger(keySpace) & isKeyDown(keyShift) {
+	if isKeyTrigger(keySpace) {
 		apacheFireCannon thismod
 	}
-	else : if isKeyTrigger(keySpace) {
+	else : if isKeyTrigger(keySpace) & isKeyDown(keyShift) {
 		apacheFireRocket thismod
 	}
 
@@ -186,6 +186,10 @@
 	repeat length(mRBullets)
 		rBulletUpdate mRBullets(cnt)
 	loop
+
+	checkHitCShellPlaer mCShells
+	checkHitCShellBunker mCShells
+
 	return
 
 #modfunc apacheDraw

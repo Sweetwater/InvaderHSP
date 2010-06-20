@@ -241,6 +241,7 @@
 		bunkerUpdate gBunkers(cnt)
 	loop
 
+
 //	checkHitPlayer gPlayer, gEnemyBullets
 //	checkHitEnemy gEnemys, gPlayerBullets
 //	checkHitBunker gBunkers, gEnemyBullets
@@ -310,6 +311,76 @@
 		}
 	loop
 	return
+
+
+
+#deffunc checkHitCShellPlaer array _cShells
+
+	if playerIsDisable(gPlayer) : return
+
+	pX = playerGetX(gPlayer)
+	pY = playerGetY(gPlayer)
+
+	hitIndex = checkHitCShells(_cShells, pX,pY, playerRangeX,playerRangeY)
+	if hitIndex != -1 {
+	   playerDisable gPlayer
+	   cShellDisable _cShells(hitIndex)
+	}
+	return
+
+
+#deffunc checkHitCShellBunker array _cShells
+	repeat length(gBunkers)
+		i = cnt
+		if bunkerIsDisable(gBunkers(i)) : continue
+
+		bX = bunkerGetX(gBunkers(i))
+		bY = bunkerGetY(gBunkers(i))
+
+		hitIndex = checkHitCShells(_cShells, bX,bY, bunkerRangeX,bunkerRangeY)
+		if hitIndex != -1 {
+		   bunkerDamage gBunkers(i), cShellDamage
+		   cShellDisable _cShells(hitIndex)
+		}
+	loop
+	return
+
+
+#defcfunc checkHitCShells	array _cShells,				\
+							int _x, int _y,				\
+							int _rangeX, int _rangeY,	\
+							local _i
+
+	hitIndex = -1
+	rangeX = sShellRangeX + _rangeX
+	rangeY = sShellRangeY + _rangeY
+	repeat length(_cShells)
+		_i = cnt
+		if cShellIsDisable(_cShells(_i)) : continue
+
+		cX = cShellGetX(_cShells(_i))
+		cY = cShellGetY(_cShells(_i))
+
+		if isHit(_x,_y, cX,cY, rangeX,rangeY) {
+			hitIndex = _i
+			break
+		}
+	loop
+	return hitIndex
+
+
+#defcfunc isHit double _x1, double _y1,	\
+				double _x2, double _y2,	\
+				double _rangeX, double _rangeY
+
+	diffX = absf(_x1 - _x2)
+	diffY = absf(_y1 - _y2)
+
+	isHitX = diffX < _rangeX
+	isHitY = diffY < _rangeY
+
+	return isHitX & isHitY
+
 
 #global
 

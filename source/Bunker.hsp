@@ -1,13 +1,16 @@
 #ifndef ___Bunker___
 #define ___Bunker___
 
-
 #include "./source/Define.hsp"
 
-#module ModBunker mX, mY, mDirection, mIsActive, mImageID
+#module ModBunker	mX, mY,		\
+					mShield,	\
+					mIsActive,	\
+					mImageID
 
-#modinit int imageID
-	mImageID = imageID
+#modinit int _imageID
+	mImageID = _imageID
+	mShield = bunkerMaxShield
 	mIsActive = false
 	return
 
@@ -21,9 +24,13 @@
 
 #modfunc bunkerDraw
 	if mIsActive == false : return
+
+	chip = double(bunkerAnimNum-1) * (double(mShield) / bunkerMaxShield)
+	chip = (bunkerAnimNum-1) - chip
+
 	pos mX, mY
-	color 248,0,0
-	celput mImageID, 0
+	color transparen
+	celput mImageID, chip
 	return
 
 
@@ -35,8 +42,17 @@
 #modcfunc bunkerGetY
 	return mY
 
+#modcfunc bunkerIsDisable
+	return mIsActive == false
+
 #modcfunc bunkerIsActive
 	return mIsActive
+
+
+#modfunc bunkerDamage int _damage
+	mShield -= _damage
+	if mShield <= 0 : mIsActive = false
+	return
 
 #modfunc bunkerDisable
 	mIsActive = false
@@ -45,6 +61,7 @@
 #modfunc bunkerReset int x, int y
 	mX = x
 	mY = y
+	mShield = bunkerMaxShield
 	mIsActive = true
 	return
 
