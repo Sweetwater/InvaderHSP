@@ -51,7 +51,6 @@
 
 #modfunc bunkerDamage int _damage
 	mShield -= _damage
-logmes "bunkerDamage " + _damage
 	if mShield <= 0 : mIsActive = false
 	return
 

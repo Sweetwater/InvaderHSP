@@ -9,6 +9,7 @@
 #include "./source/Rocket.hsp"
 #include "./source/RocketBullet.hsp"
 #include "./source/Apache.hsp"
+#include "./source/ApacheContoller.hsp"
 
 
 #module Game
@@ -58,6 +59,9 @@
 
 	repeat apacheMaxNum
 		newmod gApaches, ModApache, gApacheImageID, gRBulletImageID, gCShellImageID, gBackBufferID
+	loop
+	repeat apacheMaxNum
+		newmod gACtrs, ModApacheController, gApaches(cnt)
 	loop
 
 	repeat bunkerMaxNum
@@ -116,13 +120,9 @@
 		apacheRespawnCounter--
 	}
 	else {
-		dim dirs,2
-		dirs(0) = dirLeft
-		dirs(1) = dirRight
 		repeat length(gApaches)
 			if apacheIsDisable(gApaches(cnt)) {
-				x = rnd(screenWidth)
-				apacheRespawn gApaches(cnt), 320, 60, dirs(cnt)
+				aCtrRespawn gACtrs(cnt)
 				apacheRespawnCounter = apacheRespawnCount
 				break
 			}
@@ -142,6 +142,7 @@
 	loop
 
 	repeat length(gApaches)
+		aCtrUpdate gACtrs(cnt)
 		apacheUpdate gApaches(cnt)
 	loop
 
@@ -283,10 +284,10 @@
 #deffunc checkHitRBulletApache array _rBullets
 	repeat length(gApaches)
 		i = cnt
-		if bunkerIsDisable(gApaches(i)) : continue
+		if apacheIsDisable(gApaches(i)) : continue
 
-		aX = bunkerGetX(gApaches(i))
-		aY = bunkerGetY(gApaches(i))
+		aX = apacheGetX(gApaches(i))
+		aY = apacheGetY(gApaches(i))
 
 		hitIndex = checkHitRBullets(_rBullets, aX,aY, apacheRangeX,apacheRangeY)
 		if hitIndex != -1 {
@@ -294,7 +295,6 @@
 		   rBulletDisable _rBullets(hitIndex)
 		}
 	loop
-	return
 	return
 
 

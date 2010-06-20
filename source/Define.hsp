@@ -63,7 +63,7 @@
 #const global rocketMaxNum       (5)
 #const global rocketRespawnCount (120)
 
-#const global apacheMaxNum       (2)
+#const global apacheMaxNum       (1)
 #const global apacheRespawnCount (15)
 
 #const global pickupRageX (40)

@@ -13,9 +13,9 @@
 
 #const speed   6.0
 
-#const xLimitMin 0
-#const xLimitMax screenWidth
-#const yLimitMin 0
+#const xLimitMin -100
+#const xLimitMax screenWidth + 100
+#const yLimitMin -200
 #const yLimitMax screenHeight
 
 #modinit int _imageID
@@ -28,9 +28,6 @@
 
 #modfunc cShellUpdate
 	if mIsActive == false : return
-
-logmes "x :" + mX
-logmes "y :" + mY
 
 	xSpeed = speed
 	if mDirection == dirLeft : xSpeed = -speed
@@ -49,8 +46,7 @@ logmes "y :" + mY
 
 	pos round(mX), round(mY)
 	color transparence
-logmes "imageID :" + mImageID
-	celput 7, 0
+	celput mImageID, 0
 	return
 
 

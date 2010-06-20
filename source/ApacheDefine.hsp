@@ -1,0 +1,15 @@
+
+#enum actionFlight = 0
+#enum actionUp
+#enum actionDown
+#enum actionForward
+#enum actionBack
+#enum actionFastForward
+#enum actionDive
+#enum actionEscape
+
+#enum attackNone = 0
+#enum attackCRake
+#enum attackCTarget
+#enum attackRocket
+
