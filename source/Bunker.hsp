@@ -29,7 +29,7 @@
 	chip = (bunkerAnimNum-1) - chip
 
 	pos mX, mY
-	color transparen
+	color transparence
 	celput mImageID, chip
 	return
 
@@ -51,6 +51,7 @@
 
 #modfunc bunkerDamage int _damage
 	mShield -= _damage
+logmes "bunkerDamage " + _damage
 	if mShield <= 0 : mIsActive = false
 	return
 

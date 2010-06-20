@@ -79,6 +79,10 @@
 #const global cShellRangeY (4)
 #const global cShellDamage (1)
 
+#const global rBulletRangeX (4)
+#const global rBulletRangeY (4)
+#const global rBulletDamage (3)
+
 #enum global dirLeft = 0
 #enum global dirRight
 #enum global dirUp

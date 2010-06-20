@@ -169,10 +169,10 @@
 	mY += sin(mAngle) * mSpeed
 	mY += mGravity
 
-	if isKeyTrigger(keySpace) {
+	if isKeyTrigger(keySpace) & isKeyDown(keyShift) {
 		apacheFireCannon thismod
 	}
-	else : if isKeyTrigger(keySpace) & isKeyDown(keyShift) {
+	else : if isKeyTrigger(keySpace) {
 		apacheFireRocket thismod
 	}
 
@@ -189,6 +189,8 @@
 
 	checkHitCShellPlaer mCShells
 	checkHitCShellBunker mCShells
+	checkHitRBulletPlaer mRBullets
+	checkHitRBulletBunker mRBullets
 
 	return
 

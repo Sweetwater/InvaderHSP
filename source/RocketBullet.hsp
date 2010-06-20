@@ -108,6 +108,9 @@
 #modcfunc rBulletGetY
 	return mY
 
+#modcfunc rBulletIsDisable
+	return mIsActive == false
+
 #modcfunc rBulletIsActive
 	return mIsActive
 

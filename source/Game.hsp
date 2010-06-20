@@ -369,6 +369,66 @@
 	return hitIndex
 
 
+
+
+
+#deffunc checkHitRBulletPlaer array _rBullets
+
+	if playerIsDisable(gPlayer) : return
+
+	pX = playerGetX(gPlayer)
+	pY = playerGetY(gPlayer)
+
+	hitIndex = checkHitCShells(_rBullets, pX,pY, playerRangeX,playerRangeY)
+	if hitIndex != -1 {
+	   playerDisable gPlayer
+	   rBulletDisable _rBullets(hitIndex)
+	}
+	return
+
+
+#deffunc checkHitRBulletBunker array _rBullets
+	repeat length(gBunkers)
+		i = cnt
+		if bunkerIsDisable(gBunkers(i)) : continue
+
+		bX = bunkerGetX(gBunkers(i))
+		bY = bunkerGetY(gBunkers(i))
+
+		hitIndex = checkHitRBullets(_rBullets, bX,bY, bunkerRangeX,bunkerRangeY)
+		if hitIndex != -1 {
+		   bunkerDamage gBunkers(i), rBulletDamage
+		   rBulletDisable _rBullets(hitIndex)
+		}
+	loop
+	return
+
+
+#defcfunc checkHitRBullets	array _rBullets,				\
+							int _x, int _y,				\
+							int _rangeX, int _rangeY,	\
+							local _i
+
+	hitIndex = -1
+	rangeX = rBulletRangeX + _rangeX
+	rangeY = rBulletRangeY + _rangeY
+	repeat length(_rBullets)
+		_i = cnt
+		if rBulletIsDisable(_rBullets(_i)) : continue
+
+		rX = rBulletGetX(_rBullets(_i))
+		rY = rBulletGetY(_rBullets(_i))
+
+		if isHit(_x,_y, rX,rY, rangeX,rangeY) {
+			hitIndex = _i
+			break
+		}
+	loop
+	return hitIndex
+
+
+
+
 #defcfunc isHit double _x1, double _y1,	\
 				double _x2, double _y2,	\
 				double _rangeX, double _rangeY
