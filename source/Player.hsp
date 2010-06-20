@@ -225,10 +225,10 @@
 		mEscKeyCounterR = 0
 		playerChangeAct thismod, actionEscape, 0, dirRight
 	}
-	else:if isKeyDown(keyShift) & isKeyDown(keyLeft) {
+	else:if isKeyDown(mouseRight) & isKeyDown(keyLeft) {
 		playerChangeAct thismod, actionSprint, 0, dirLeft
 	}
-	else:if isKeyDown(keyShift) & isKeyDown(keyRight) {
+	else:if isKeyDown(mouseRight) & isKeyDown(keyRight) {
 		playerChangeAct thismod, actionSprint, 0, dirRight
 	}
 	else:if isKeyDown(keyLeft) {
@@ -270,10 +270,10 @@
 
 	if mActionSub != sprintSlip & mActionSub != sprintStop{
 		if mActionSub == sprintSprint : asub = sprintSlip : else : asub = sprintStop
-		if mDirection == dirLeft & isKeyUp(keyLeft) | isKeyUp(keyShift) {
+		if mDirection == dirLeft & isKeyUp(keyLeft) | isKeyUp(mouseRight) {
 			playerChangeAct thismod, mAction, asub, mDirection
 		}
-		if mDirection == dirRight & isKeyUp(keyRight) | isKeyUp(keyShift) {
+		if mDirection == dirRight & isKeyUp(keyRight) | isKeyUp(mouseRight) {
 			playerChangeAct thismod, mAction, asub, mDirection
 		}
 	}
