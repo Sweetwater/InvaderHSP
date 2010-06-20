@@ -126,7 +126,7 @@
 	bulletOffset = 15
 	x = cos(mAngle) * bulletOffset + mX
 	y = sin(mAngle) * bulletOffset + mY
-	rBulletFire mBullet, x, y, mAngle
+	rBulletFire mBullet, x, y, mAngle, dirRight
 	mState = stateEmpty
 	animChange mAnim, sAnimDatas, aEmpty
 	return

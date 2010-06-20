@@ -45,6 +45,10 @@
 	gBackgroundImageID = stat
 	celdiv gBackgroundImageID, 320,240, 0,0
 
+	gBackBufferID = gBackgroundImageID + 1
+	buffer gBackBufferID, 64,64
+	celdiv gBackBufferID, 64,64, 32,32
+
 	return
 
 
@@ -53,7 +57,7 @@
 //	dimtype gEnemys, vartype("struct"), 4,10
 
 	repeat apacheMaxNum
-		newmod gApaches, ModApache, gApacheImageID, gRBulletImageID
+		newmod gApaches, ModApache, gApacheImageID, gRBulletImageID, gBackBufferID
 	loop
 
 	//dimtype bullets, vartype("struct"),32
@@ -67,7 +71,7 @@
 	loop
 	
 	repeat playerBulletMaxNum
-		newmod gPlayerBullets, ModRocketBullet, gRBulletImageID
+		newmod gPlayerBullets, ModRocketBullet, gRBulletImageID, gBackBufferID
 	loop
 	repeat rocketMaxNum
 		newmod gRockets, ModRocket, gRocketImageID, gPlayerBullets(cnt)
@@ -196,10 +200,13 @@
 		apacheRespawnCounter--
 	}
 	else {
+		dim dirs,2
+		dirs(0) = dirLeft
+		dirs(1) = dirRight
 		repeat length(gApaches)
 			if apacheIsDisable(gApaches(cnt)) {
 				x = rnd(screenWidth)
-				apacheRespawn gApaches(cnt), 320, 60
+				apacheRespawn gApaches(cnt), 320, 60, dirs(cnt)
 				apacheRespawnCounter = apacheRespawnCount
 				break
 			}
@@ -253,6 +260,7 @@
 
 #deffunc drawGame
 
+	gsel 0
 	gmode 1
 	pos 0,0
 //	celput gBackgroundImageID, 0, 2, 2

@@ -63,8 +63,8 @@
 #const global pickupRageY (40)
 
 
-#const global apacheMaxNum (1)
-#const global apacheRespawnCount (30)
+#const global apacheMaxNum (2)
+#const global apacheRespawnCount (15)
 
 
 #const global enemyStartX (60)

@@ -4,7 +4,14 @@
 #include "./source/Define.hsp"
 #include "./source/Animation.hsp"
 
-#module ModRocketBullet mX, mY, mSpeed, mGravity, mAngle, mAnim, mIsActive, mImageID
+#module ModRocketBullet	mX, mY,				\
+						mSpeed,				\
+						mDirection,			\
+						mGravity,			\
+						mAngle,				\
+						mAnim,				\
+						mIsActive,			\
+						mImageID
 
 #include "hspmath.as"
 
@@ -20,8 +27,8 @@
 
 #enum aFire = 0
 
-#modinit int imageID
-	mImageID = imageID
+#modinit int _imageID, int _bufferID
+	mImageID = _imageID
 	mMoveX = 0.0
 	mMoveY = 0.0
 	mSpeed = 0.0
@@ -30,6 +37,8 @@
 
 	rBulletInitAnimData thimod
 	newmod mAnim, ModAnimation
+
+	sBufferID = _bufferID
 	return
 
 #modterm
@@ -40,7 +49,11 @@
 
 	mSpeed += accel
 	if mSpeed > maxSpeed : mSpeed = maxSpeed
-	mMoveX = cos(mAngle) * mSpeed
+
+	xSpeed = mSpeed
+	if mDirection == dirLeft : xSpeed = -mSpeed
+
+	mMoveX = cos(mAngle) * xSpeed
 	mMoveY = sin(mAngle) * mSpeed + mGravity
 	mGravity += gravity
 
@@ -59,10 +72,23 @@
 
 	chip = animUpdate(mAnim, sAnimDatas)
 
-	pos round(mX), round(mY)
+	xZoom = 1
+	if mDirection == dirLeft : xZoom = -1
+
+	currentID = ginfo_sel
+	gsel sBufferID
 	color transparence
-	celput mImageID, chip, ,, mAngle
+	boxf 0,0, ginfo_winx,ginfo_winy
+	pos ginfo_winx/2, ginfo_winy/2
+	celput mImageID, chip,,, mAngle
+
+	gsel currentID
+	pos round(mX), round(mY)
+	celput sBufferID, 0, xZoom
 	return
+
+
+
 
 #modfunc rBulletInitAnimData
 	if sIsAnimData : return
@@ -86,16 +112,18 @@
 	return mIsActive
 
 
-#modfunc rBulletFire double _x, double _y, double _angle
+#modfunc rBulletFire double _x, double _y, double _angle, int _direction
 	if mIsActive : return
 
 	mX = _x
 	mY = _y
 	mAngle = _angle
 	mSpeed = firstSpeed
+	mDirection = _direction
 	mGravity = 0.0
 	mIsActive = true
 	animChange mAnim, sAnimDatas, aFire
+
 	return
 
 #modfunc rBulletDisable

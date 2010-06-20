@@ -7,6 +7,7 @@
 #module ModApache	mX, mY, 			\
 					mTargetX, mTargetY,	\
 					mSpeed,				\
+					mDirection,			\
 					mGravity,			\
 					mGravityCount,		\
 					mAction,			\
@@ -64,7 +65,7 @@
 #enum actionEscape
 
 
-#modinit int _imageID, int _rBulletImageID
+#modinit int _imageID, int _rBulletImageID, int _bufferID
 	mImageID = _imageID
 	mState = stateDisable
 	mGravityCount = double(0)
@@ -72,6 +73,8 @@
 	repeat rBulletNum
 		newmod mRBullets, ModRocketBullet, _rBulletImageID
 	loop
+
+	sBufferID = _bufferID
 
 	return
 
@@ -150,7 +153,14 @@
 	mSpeed = limitf(mSpeed, 0, 6)
 
 
-	mX += cos(mAngle) * mSpeed
+
+	xSpeed = mSpeed
+	if mDirection == dirLeft : xSpeed = -mSpeed
+
+	xAngle = mAngle
+	if mDirection == dirLeft : xAngle = -mAngle
+
+	mX += cos(mAngle) * xSpeed
 	mY += sin(mAngle) * mSpeed
 	mY += mGravity
 
@@ -168,7 +178,6 @@
 	repeat length(mRBullets)
 		rBulletUpdate mRBullets(cnt)
 	loop
-
 	return
 
 #modfunc apacheDraw
@@ -178,8 +187,19 @@
 		rBulletDraw mRBullets(cnt)
 	loop
 
+	xZoom = 1
+	if mDirection == dirLeft : xZoom = -1
+
+	currentID = ginfo_sel
+	gsel sBufferID
+	color transparence
+	boxf 0,0, ginfo_winx,ginfo_winy
+	pos ginfo_winx/2, ginfo_winy/2
+	celput mImageID, 0,,, mAngle
+
+	gsel currentID
 	pos mX, mY
-	celput mImageID, 0,,,mAngle
+	celput sBufferID, 0, xZoom
 	return
 
 
@@ -202,15 +222,23 @@
 #const rocketAngle       (xRadian * 110)
 #const rocketFireOffset1 (-15)
 #const rocketFireOffset2 (5)
-#const rocketFireAngle  (xRadian * 30)
+#const rocketFireAngle   (xRadian * 30)
 
 #modfunc apacheFireRocket
+	offset1 = rocketFireOffset1
+	offset2 = rocketFireOffset2
+	if mDirection == dirLeft {
+		offset1 = -rocketFireOffset1
+		offset2 = -rocketFireOffset2
+	}
+
 	ddim x,2
 	ddim y,2
-	x(0) = mX + cos(mAngle + rocketFireAngle) * rocketFireOffset1
+	x(0) = mX + cos(mAngle + rocketFireAngle) * offset1
 	y(0) = mY + sin(mAngle + rocketFireAngle) * rocketFireOffset1
-	x(1) = mX + cos(mAngle + rocketFireAngle) * rocketFireOffset2
+	x(1) = mX + cos(mAngle + rocketFireAngle) * offset2
 	y(1) = mY + sin(mAngle + rocketFireAngle) * rocketFireOffset2
+
 	dim index,2
 	fireCnt = 0
 	repeat length(mRBullets)
@@ -222,8 +250,8 @@
 	loop
 
 	if fireCnt == 2 {
-		rBulletFire mRBullets(index(0)), x(0), y(0), (mAngle + rocketAngle)
-		rBulletFire mRBullets(index(1)), x(1), y(1), (mAngle + rocketAngle)
+		rBulletFire mRBullets(index(0)), x(0), y(0), (mAngle + rocketAngle), mDirection
+		rBulletFire mRBullets(index(1)), x(1), y(1), (mAngle + rocketAngle), mDirection
 	}
 	return
 
@@ -269,22 +297,28 @@
 
 #modfunc apacheUpdateMoveTarget
 
-	mX += cos(mAngle) * mSpeed
+	xSpeed = mSpeed
+	if mDirection == dirLeft : xSpeed = -mSpeed
+
+	xAngle = mAngle
+	if mDirection == dirLeft : xAngle = -mAngle
+
+	mX += cos(xAngle) * mSpeed
 	mY += sin(mAngle) * mSpeed
 	mY += mGravity
 
 	return
 
-#modfunc apacheRespawn double _x, double _y
+#modfunc apacheRespawn double _x, double _y, int _direction
 	mX = _x
 	mY = _y
 
 	mTargetX = 320
 	mTargetY = 240
 	mSpeed = 1.1
+	mDirection = _direction
 	mAngle = baseAngle
 	mState = stateTargetMove
-
 	return
 
 #modfunc apacheDisable
