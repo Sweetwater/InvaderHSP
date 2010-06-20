@@ -57,14 +57,14 @@
 #const global bunkerStartX    (40)
 #const global bunkerOffsetX   (60)
 #const global bunkerStartY    (380)
-#const global bunkerMaxShield (10)
+#const global bunkerMaxShield (40)
 #const global bunkerAnimNum   (5)
 
 #const global rocketMaxNum       (5)
 #const global rocketRespawnCount (120)
 
-#const global apacheMaxNum       (1)
-#const global apacheRespawnCount (15)
+#const global apacheMaxNum       (6)
+#const global apacheRespawnCount (500)
 
 #const global pickupRageX (40)
 #const global pickupRageY (40)

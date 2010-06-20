@@ -179,7 +179,7 @@
 	// ˆê’UmIsOldActionChange‚ÉŠi”[‚·‚é
 	mIsOldActionChange = true
 
-logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _direction
+//logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _direction
 	if mAction == actionStop {
 		if mDirection == dirLeft:anim = aStL : else :anim = aStR
 		animChange mAnim, sAnimDatas, anim
@@ -374,7 +374,7 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 	return
 
 
-#const aimStopCount (60)
+#const aimStopCount (30)
 
 #modfunc playerUpdateAim
 	if mIsActionChange {
@@ -415,7 +415,7 @@ logmes "playerChangeAct a:" + _action + " s: " + _actionSub + " d: " + _directio
 
 		if vartype(mRocket) == vartype("struct") {
 			if rocketIsReady(mRocket) {
-				rocketRelease mRocket
+				rocketRelease mRocket, mDirection
 			} else {
 				rocketDisposal mRocket
 			}

@@ -20,9 +20,9 @@
 #const accel      0.1
 #const gravity    0.02
 
-#const xLimitMin 0
-#const xLimitMax screenWidth
-#const yLimitMin 0
+#const xLimitMin -100
+#const xLimitMax screenWidth+100
+#const yLimitMin -100
 #const yLimitMax screenHeight
 
 #enum aFire = 0

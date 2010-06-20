@@ -139,8 +139,8 @@
 	animChange mAnim, sAnimDatas, aReady
 	return
 
-#modfunc rocketRelease
-	if rnd(2) : mMoveX=releaseX : else : mMoveX=-releaseX
+#modfunc rocketRelease int _direction
+	if _direction == dirLeft : mMoveX=-releaseX : else : mMoveX=releaseX
 	mMoveY = releaseY
 	mX = double(mX)
 	mY = double(mY)

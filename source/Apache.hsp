@@ -202,12 +202,12 @@
 		mFireCounter--
 	}
 
-	if isKeyTrigger(keySpace) & isKeyDown(keyShift) {
-		apacheFireCannon thismod
-	}
-	else : if isKeyTrigger(keySpace) {
-		apacheFireRocket thismod
-	}
+//	if isKeyTrigger(keySpace) & isKeyDown(keyShift) {
+//		apacheFireCannon thismod
+//	}
+//	else : if isKeyTrigger(keySpace) {
+//		apacheFireRocket thismod
+//	}
 
 	repeat length(mCShells)
 		cShellUpdate mCShells(cnt)

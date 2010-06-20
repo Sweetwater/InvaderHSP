@@ -94,13 +94,13 @@
 
 #deffunc updateInitState
 	resetBunkers gBunkers
-	rocketRespawnCounter = rocketRespawnCount
-	apacheRespawnCounter = apacheRespawnCount
+	rocketRespawnCounter = 0
+	apacheRespawnCounter = 0
 	state = statePlay
 	return
 
 #deffunc updateRocketRespawn
-	if rocketRespawnCounter {
+	if rocketRespawnCounter != 0 {
 		rocketRespawnCounter--
 	}
 	else {
@@ -116,7 +116,7 @@
 	return
 
 #deffunc updateApacheRespawn
-	if apacheRespawnCounter {
+	if apacheRespawnCounter != 0 {
 		apacheRespawnCounter--
 	}
 	else {
@@ -178,7 +178,7 @@
 	gsel 0
 	gmode 1
 	pos 0,0
-//	celput gBackgroundImageID, 0, 2, 2
+	celput gBackgroundImageID, 0, 2, 2
 
 	gmode 4,,,255
 

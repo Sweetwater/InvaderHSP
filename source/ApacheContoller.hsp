@@ -12,6 +12,7 @@
 							mPattern,			\
 							mPatternSub,		\
 							mPatternCounter,	\
+							mLimitCounter,		\
 							mState
 
 #include "./source/ApacheDefine.hsp"
@@ -20,6 +21,8 @@
 
 #define ctype rnd2(%1, %2)  (rnd(%2-%1) + %1)
 
+#const upCanonnCount (60)
+#const limitCount    (360)
 
 #enum patternEntry0 = 0
 #enum patternEntry1
@@ -40,19 +43,18 @@
 	if sStaticInit : return
 	sStaticInit = true
 
-	dim sLocals0, 16
-	dim sLocals1, 16
-	dim sLocals2, 16
-	dim sLocals3, 16
+	dim sLocals0, 32
+	dim sLocals1, 32
+	dim sLocals2, 32
+	dim sLocals3, 32
 
 	return
 
 #modterm
 	return
 
-#const upCanonnCount (60)
-
 #modfunc aCtrUpdate
+	if apacheIsDisable(mApache) : return
 
 	aCtrController thismod
 
@@ -63,198 +65,69 @@
 	aY = apacheGetY(mApache)
 	aD = apacheGetDirection(mApache)
 
+	isEnd = false
 	if mPattern == patternEntry0 {
-		if aY > mTargetY {
-			aCtrChangePattern thismod, patternUpCannon
-		}
+		isEnd = updatePEntry0(thismod)
 	}
 	else : if mPattern == patternEntry1 {
-		if aCtrCheckX(thismod, aX, mTargetX) {
-			aCtrChangePattern thismod, patternUpCannon
-		}
+		isEnd = updatePEntry1(thismod)
 	}
 	else : if mPattern == patternFlight {
-		if mIsPChange {
-			apacheSetAttack mApache, attackNpne
-			apacheSetAction mApache, actionFlight
-		}
+		isEnd = updatePFlight(thismod)
 	}
 	else : if mPattern == patternUp {
-		if mIsPChange {
-			apacheSetAttack mApache, attackNpne
-			apacheSetAction mApache, actionUp
-			mTargetY = rnd2(40, 60)
-		}
-		if aY < mTargetY {
-			aCtrChangePattern thismod, patternFlight
-		}
+		isEnd = updatePUp(thismod)
 	}
 	else : if mPattern == patternUpCannon {
-		if mIsPChange{
-			apacheSetAttack mApache, attackCRake
-			apacheSetAction mApache, actionUp
-			mPatternCounter = upCanonnCount
-		}
-		mPatternCounter--
-		if mPatternCounter == 0 {
-			aCtrChangePattern thismod, patternFlight
-		}
+		isEnd = updatePUpCannon(thismod)
 	}
 	else : if mPattern == patternDiveUp {
-		if mPatternSub == 0 {
-			if mIsPChange {
-				apacheSetAttack mApache, attackNone
-				apacheSetAction mApache, actionDive
-				mTargetY = rnd2(200, 240)
-			}
-			if aY > mTargetY {
-				aCtrChangePattern thismod, patternDiveUp, 1
-			}
-		}
-		else {
-			if mIsPChange {
-				apacheSetAction mApache, actionUp
-				mTargetY = rnd2(40, 60)
-			}
-			if aY < mTargetY {
-				aCtrChangePattern thismod, patternFlight
-			}
-		}
+		isEnd = updatePDiveUp(thismod)
 	}
 	else : if mPattern == patternDiveRocket {
-		if mPatternSub == 0 {
-			if mIsPChange {
-				apacheSetAttack mApache, attackNone
-				apacheSetAction mApache, actionDive
-				mPatternCounter = rnd2(10, 20)
-			}
-			mPatternCounter--
-			if mPatternCounter == 0 {
-				aCtrChangePattern thismod, patternDiveRocket, 1
-			}
-		}
-		else : if mPatternSub == 1 {
-			if mIsPChange {
-				apacheSetAttack mApache, attackRocket
-				mTargetY = rnd2(200, 240)
-			}
-			if aY > mTargetY {
-				aCtrChangePattern thismod, patternDiveRocket, 2
-			}
-		}
-		else : if mPatternSub == 2 {
-			if mIsPChange {
-				apacheSetAction mApache, actionFastForward
-			}
-			if aX < 0 & aX > 640 {
-				aCtrChangePattern thismod, patternFlight
-			}
-		}
+		isEnd = updatePDiveRocket(thismod)
 	}
 	else : if mPattern == patternFastForwardCannon {
-		if mPatternSub == 0 {
-			if mIsPChange {
-				apacheSetAttack mApache, attackCTarget
-				apacheSetCAngle mApache, toRadian(30)
-				apacheSetAction mApache, actionFastForward
-			}
-			if aX < 0 & aX > 640 {
-				aCtrChangePattern thismod, patternFlight
-			}
-		}
+		isEnd = updatePFastForwardCannon(thismod)
 	}
 	else : if mPattern == patternDownRocket {
-		if mPatternSub == 0 {
-			if mIsPChange {
-				apacheSetAttack mApache, attackRocket
-				apacheSetAction mApache, actionDown
-				mTargetY = rnd2(300, 340)
-			}
-			if aY > mTargetY {
-				aCtrChangePattern thismod, patternUp
-			}
-		}
+		isEnd = updatePDownRocket(thismod)
 	}
 	else : if mPattern == patternLRCannon {
-		if mPatternSub == 0 {
-			if mIsPChange {
-				apacheSetAttack mApache, attackCRake
-				apacheSetAction mApache, actionForward
-				mPatternCounter = rnd2(3, 6)
-				mTargetX = rnd2(540, 600)
-				mTargetX = aCtrTargetX(thismod, mTargetX)
-			}
-			if aCtrCheckX(thismod, aX, mTargetX) {
-				aCtrChangePattern thismod, patternLRCannon, 1
-			}
-		}
-		else : if mPatternSub == 1 {
-			if mIsPChange {
-				if aD == dirLeft : dir=dirRight : else : dir=dirLeft
-				apacheSetAction mApache, actionDown
-				apacheSetDirection mApache, dir
-				mTargetY = rnd2(100, 160)
-			}
-			if aY > mTargetY {
-				aCtrChangePattern thismod, patternLRCannon, 2
-			}
-		}
-		else : if mPatternSub == 2 {
-			if mIsPChange {
-				apacheSetAction mApache, actionForward
-				mTargetX = rnd2(540, 600)
-				mTargetX = aCtrTargetX(thismod, mTargetX)
-			}
-			if aCtrCheckX(thismod, aX, mTargetX) {
-				aCtrChangePattern thismod, patternLRCannon, 1
-
-				mPatternCounter--
-				if mPatternCounter == 0{
-					aCtrChangePattern thismod, patternFlight
-				}
-			}
-		}
+		isEnd = updatePLRCannon(thismod)
 	}
 	else : if mPattern == patternLRFlight {
-		if mPatternSub == 0 {
-			if mIsPChange {
-				apacheSetAttack mApache, attackNone
-				apacheSetAction mApache, actionForward
-				mPatternCounter = rnd2(1, 3)
-				mTargetX = rnd2(540, 600)
-				mTargetX = aCtrTargetX(thismod, mTargetX)
-			}
-			if aCtrCheckX(thismod, aX, mTargetX) {
-				aCtrChangePattern thismod, patternLRFlight, 1
-			}
-		}
-		else : if mPatternSub == 1 {
-			if mIsPChange {
-				if aD == dirLeft : dir=dirRight : else : dir=dirLeft
-				apacheSetAction mApache, actionDown
-				apacheSetDirection mApache, dir
-				mTargetY = rnd2(100, 160)
-			}
-			if aY > mTargetY {
-				aCtrChangePattern thismod, patternLRFlight, 2
-			}
-		}
-		else : if mPatternSub == 2 {
-			if mIsPChange {
-				apacheSetAction mApache, actionForward
-				mTargetX = rnd2(540, 600)
-				mTargetX = aCtrTargetX(thismod, mTargetX)
-			}
-			if aCtrCheckX(thismod, aX, mTargetX) {
-				aCtrChangePattern thismod, patternLRFlight, 1
-
-				mPatternCounter--
-				if mPatternCounter == 0{
-					aCtrChangePattern thismod, patternFlight
-				}
-			}
-		}
+		isEnd = updatePLRFlight(thismod)
 	}
+
+	if aX < 0 | aX > screenWidth | aY < 0 | aY > screenHeight {
+		mLimitCounter--
+	}
+	if mLimitCounter == 0 {
+		aCtrRespawn thismod
+	}
+	else : if isEnd {
+		if aD == dirLeft & aX < screenWidth/2 {
+			apacheSetDirection mApache, dirRight
+		}
+		if aD == dirRight & aX > screenWidth/2 {
+			apacheSetDirection mApache, dirLeft
+		}
+
+		sLocals0(0*2) = 20, patternFlight
+		sLocals0(1*2) = 10, patternUp
+		sLocals0(2*2) = 10, patternUpCannon
+		sLocals0(3*2) = 10, patternDiveUp
+		sLocals0(4*2) = 10, patternDiveRocket
+		sLocals0(5*2) = 10, patternFastForwardCannon
+		sLocals0(6*2) = 15, patternDownRocket
+		sLocals0(7*2) =  5, patternLRCannon
+		sLocals0(8*2) = 10, patternLRFlight
+
+		pattern = aCtrOdds(thismod, sLocals0)
+		aCtrChangePattern thismod, pattern
+	}
+
 	return
 
 
@@ -264,12 +137,12 @@
 	index = 0
 	value = 0
 	repeat length(_odds) / 2
-		value += _odds(index*2 + 1)
+		value += _odds(index*2)
 		if rand < value : break
 		index++
 	loop
 
-	return _odds(index*2)
+	return _odds(index*2+1)
 
 #modcfunc aCtrCheckX int _X, int _targetX
 	direction = apacheGetDirection(mApache)
@@ -295,13 +168,228 @@
 
 
 
+
+#modcfunc updatePEntry0
+	if aY > mTargetY {
+		return true
+	}
+	return false
+
+#modcfunc updatePEntry1
+	if aCtrCheckX(thismod, aX, mTargetX) {
+		return true
+	}
+	return false
+
+#modcfunc updatePFlight
+	if mIsPChange {
+		apacheSetAttack mApache, attackNpne
+		apacheSetAction mApache, actionFlight
+		mPatternCounter = rnd2(60, 120)
+	}
+	mPatternCounter--
+	if mPatternCounter == 0 {
+		return true
+	}
+	return false
+
+#modcfunc updatePUp
+	if mIsPChange {
+		apacheSetAttack mApache, attackNpne
+		apacheSetAction mApache, actionUp
+		mTargetY = rnd2(40, 60)
+	}
+	if aY < mTargetY {
+		return true
+	}
+	return false
+
+#modcfunc updatePUpCannon
+	if mIsPChange{
+		apacheSetAttack mApache, attackCRake
+		apacheSetAction mApache, actionUp
+		mPatternCounter = upCanonnCount
+	}
+	mPatternCounter--
+	if mPatternCounter == 0 {
+		return true
+	}
+	return false
+
+#modcfunc updatePDiveUp
+	if mPatternSub == 0 {
+		if mIsPChange {
+			apacheSetAttack mApache, attackNone
+			apacheSetAction mApache, actionDive
+			mTargetY = rnd2(200, 240)
+		}
+		if aY > mTargetY {
+			aCtrChangePattern thismod, patternDiveUp, 1
+		}
+	}
+	else {
+		if mIsPChange {
+			apacheSetAction mApache, actionUp
+			mTargetY = rnd2(40, 60)
+		}
+		if aY < mTargetY {
+			return true
+		}
+	}
+	return false
+
+#modcfunc updatePDiveRocket
+	if mPatternSub == 0 {
+		if mIsPChange {
+			apacheSetAttack mApache, attackNone
+			apacheSetAction mApache, actionDive
+			mPatternCounter = rnd2(10, 20)
+		}
+		mPatternCounter--
+		if mPatternCounter == 0 {
+			aCtrChangePattern thismod, patternDiveRocket, 1
+		}
+	}
+	else : if mPatternSub == 1 {
+		if mIsPChange {
+			apacheSetAttack mApache, attackRocket
+			mTargetY = rnd2(200, 240)
+		}
+		if aY > mTargetY {
+			aCtrChangePattern thismod, patternDiveRocket, 2
+		}
+	}
+	else : if mPatternSub == 2 {
+		if mIsPChange {
+			apacheSetAction mApache, actionFastForward
+		}
+		if aX < 0 & aX > 640 {
+			return true
+		}
+	}
+	return false
+
+
+#modcfunc updatePFastForwardCannon
+	if mPatternSub == 0 {
+		if mIsPChange {
+			apacheSetAttack mApache, attackCTarget
+			apacheSetCAngle mApache, toRadian(30)
+			apacheSetAction mApache, actionFastForward
+		}
+		if aX < 0 & aX > 640 {
+			return true
+		}
+	}
+	return false
+
+#modcfunc updatePDownRocket
+	if mPatternSub == 0 {
+		if mIsPChange {
+			apacheSetAttack mApache, attackRocket
+			apacheSetAction mApache, actionDown
+			mTargetY = rnd2(300, 340)
+		}
+		if aY > mTargetY {
+			return true
+		}
+	}
+	return false
+
+
+#modcfunc updatePLRCannon
+	if mPatternSub == 0 {
+		if mIsPChange {
+			apacheSetAttack mApache, attackCRake
+			apacheSetAction mApache, actionForward
+			mPatternCounter = rnd2(1, 4)
+			mTargetX = rnd2(540, 600)
+			mTargetX = aCtrTargetX(thismod, mTargetX)
+		}
+		if aCtrCheckX(thismod, aX, mTargetX) {
+			aCtrChangePattern thismod, patternLRCannon, 1
+		}
+	}
+	else : if mPatternSub == 1 {
+		if mIsPChange {
+			if aD == dirLeft : dir=dirRight : else : dir=dirLeft
+			apacheSetAction mApache, actionDown
+			apacheSetDirection mApache, dir
+			mTargetY = rnd2(100, 160)
+		}
+		if aY > mTargetY {
+			aCtrChangePattern thismod, patternLRCannon, 2
+		}
+	}
+	else : if mPatternSub == 2 {
+		if mIsPChange {
+			apacheSetAction mApache, actionForward
+			mTargetX = rnd2(540, 600)
+			mTargetX = aCtrTargetX(thismod, mTargetX)
+		}
+		if aCtrCheckX(thismod, aX, mTargetX) {
+			aCtrChangePattern thismod, patternLRCannon, 1
+
+			mPatternCounter--
+			if mPatternCounter == 0{
+				return true
+			}
+		}
+	}
+	return false
+
+#modcfunc updatePLRFlight
+	if mPatternSub == 0 {
+		if mIsPChange {
+			apacheSetAttack mApache, attackNone
+			apacheSetAction mApache, actionForward
+			mPatternCounter = rnd2(1, 3)
+			mTargetX = rnd2(540, 600)
+			mTargetX = aCtrTargetX(thismod, mTargetX)
+		}
+		if aCtrCheckX(thismod, aX, mTargetX) {
+			aCtrChangePattern thismod, patternLRFlight, 1
+		}
+	}
+	else : if mPatternSub == 1 {
+		if mIsPChange {
+			if aD == dirLeft : dir=dirRight : else : dir=dirLeft
+			apacheSetAction mApache, actionDown
+			apacheSetDirection mApache, dir
+			mTargetY = rnd2(100, 160)
+		}
+		if aY > mTargetY {
+			aCtrChangePattern thismod, patternLRFlight, 2
+		}
+	}
+	else : if mPatternSub == 2 {
+		if mIsPChange {
+			apacheSetAction mApache, actionForward
+			mTargetX = rnd2(540, 600)
+			mTargetX = aCtrTargetX(thismod, mTargetX)
+		}
+		if aCtrCheckX(thismod, aX, mTargetX) {
+			aCtrChangePattern thismod, patternLRFlight, 1
+
+			mPatternCounter--
+			if mPatternCounter == 0{
+				return true
+			}
+		}
+	}
+	return false
+
+
+
+
+
 #modfunc aCtrChangePattern int _pattern, int _patternSub
 	mPattern = _pattern
 	mPatternSub = _patternSub
 	mIsOldPChange = true
 
-logmes "changePattern :" + mPattern
-logmes "sub           :" + mPatternSub
+// logmes "changePattern :" + mPattern
+// logmes "sub           :" + mPatternSub
 
 	return
 
@@ -312,6 +400,8 @@ logmes "sub           :" + mPatternSub
 
 
 #modfunc aCtrRespawn
+	mLimitCounter = limitCount
+
 	resType = rnd(3)
 	if resType == 0 {
 		y = rnd2(-130, -30)
@@ -321,7 +411,7 @@ logmes "sub           :" + mPatternSub
 		direction = dirRight
 		if x > 320 : direction = dirLeft
 
-		sLocals0 = actionDown,95, actionDive,5
+		sLocals0 = 95,actionDown, 5,actionDive
 
 		apacheRespawn mApache, x, y, direction
 		apacheSetAction mApache, aCtrOdds(thismod, sLocals0)
@@ -331,7 +421,7 @@ logmes "sub           :" + mPatternSub
 		y = rnd2(100, 300)
 		x = rnd2(-50, 0)
 		mTargetX = rnd2(60, 600)
-		sLocals0 = actionForward,90, actionFastForward,10
+		sLocals0 = 90,actionForward, 10,actionFastForward
 
 		apacheRespawn mApache, x, y, dirRight
 		apacheSetAction mApache, aCtrOdds(thismod, sLocals0)
@@ -341,12 +431,16 @@ logmes "sub           :" + mPatternSub
 		y = rnd2(100, 300)
 		x = rnd2(640, 690)
 		mTargetX = rnd2(40, 580)
-		sLocals0 = actionForward,90, actionFastForward,10
+		sLocals0 = 90,actionForward, 10,actionFastForward
 
 		apacheRespawn mApache, x, y, dirLeft
 		apacheSetAction mApache, aCtrOdds(thismod, sLocals0)
 		mPattern = patternEntry1
 	}
+
+	apacheSetCAngle mApache, toRadian(30)
+	sLocals0 = 10,attackNone, 60,attackCTarget, 30,attackRocket
+	apacheSetAttack mApache, aCtrOdds(thismod, sLocals0)
 /*
 logmes "respawn   : " + resType
 logmes "x         : " + x
@@ -363,7 +457,7 @@ logmes "direction : " + apacheGetDirection(mApache)
 
 
 #modfunc aCtrController
-//	if isKeyTrigger(keyD0):aCtrChangePattern thismod, 3
+	if isKeyTrigger(keyD0):aCtrChangePattern thismod, patternLRCannon
 //	if isKeyTrigger(keyD1):aCtrChangePattern thismod, 4
 //	if isKeyTrigger(keyD2):aCtrChangePattern thismod, 5
 //	if isKeyTrigger(keyD3):aCtrChangePattern thismod, 6
