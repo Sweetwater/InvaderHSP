@@ -2,7 +2,6 @@
 #define ___Player___
 
 #include "./source/Define.hsp"
-#include "./source/Bullet.hsp"
 #include "./source/Rocket.hsp"
 #include "./source/Animation.hsp"
 
@@ -21,6 +20,7 @@
 					mIsActive,			\
 					mAnim,				\
 					mRocket,			\
+					mHasRocket,			\
 					mImageID
 
 #include "hspmath.as"
@@ -98,6 +98,14 @@
 
 	playerUpdateAction thismod
 	mX = limit(mX, xLimitMin, xLimitMax)
+
+	if mHasRocket {
+		rocketSetPos mRocket, (mX+14), mY
+		if mAction != actionAIM {
+			if mDirection == dirLeft : angle = -120 : else : angle = -80
+			rocketSetAngle mRocket, (M_PI/180 * angle)
+		}
+	}
 
 	return
 
@@ -379,8 +387,9 @@
 #modfunc playerUpdateAim
 	if mIsActionChange {
 		mActionCounter = 0
-		mRocket = -1
-		getPickupRocket thismod, mX, mY
+		if mHasRocket == false {
+			getPickupRocket thismod, mX, mY
+		}
 	}
 
 	if mActionCounter != 0 {
@@ -400,8 +409,7 @@
 	tmp = floor((dgree+15) / 30)
 	angleIndex = limit(tmp, 0, 6)
 
-	if vartype(mRocket) == vartype("struct") {
-		rocketSetPos mRocket, (mX+14), mY
+	if mHasRocket {
 		rocketSetAngle mRocket, -angle
 		if isKeyTrigger(mouseLeft) {
 			rocketFire mRocket
@@ -413,11 +421,10 @@
 	if isKeyUp(keyUp) {
 		playerChangeAct thismod, actionStop, 0, mDirection
 
-		if vartype(mRocket) == vartype("struct") {
-			if rocketIsReady(mRocket) {
-				rocketRelease mRocket, mDirection
-			} else {
+		if mHasRocket {
+			if rocketIsReady(mRocket) == false {
 				rocketDisposal mRocket
+				mHasRocket = false
 			}
 		}
 	}
@@ -463,6 +470,12 @@
 
 #modfunc playerSetRocket var _rocket
 	mRocket = _rocket
+	if vartype(mRocket) == vartype("struct") {
+		mHasRocket = true
+	}
+	else {
+		mHasRocket = false	
+	}
 	return
 
 #modfunc playerDisable

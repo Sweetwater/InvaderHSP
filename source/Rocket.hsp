@@ -2,7 +2,6 @@
 #define ___Rocket___
 
 #include "./source/Define.hsp"
-#include "./source/Bullet.hsp"
 #include "./source/Animation.hsp"
 
 #module ModRocket mX, mY, mBullet, mAngle, mMoveX, mMoveY, mState, mAnim, mImageID
@@ -14,8 +13,10 @@
 #enum stateDisposal
 
 #enum aReady = 0
-#enum aEmpty
-#enum aDisposal
+#enum aEmpty	if mState == stateDisable : return
+
+#enum aDisposal	if mState == stateDisable : return
+
 
 #const xLimitMin (0)
 #const xLimitMax (screenWidth)

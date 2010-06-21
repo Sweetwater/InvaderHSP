@@ -3,8 +3,6 @@
 
 #include "./source/Define.hsp"
 #include "./source/Player.hsp"
-#include "./source/Bullet.hsp"
-#include "./source/Enemy.hsp"
 #include "./source/Bunker.hsp"
 #include "./source/Rocket.hsp"
 #include "./source/RocketBullet.hsp"

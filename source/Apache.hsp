@@ -108,7 +108,20 @@
 
 
 #modfunc apacheUpdate
-	if mState == stateDisable : return
+	if mState == stateDisable {
+		repeat length(mCShells)
+			cShellUpdate mCShells(cnt)
+		loop
+		repeat length(mRBullets)
+			rBulletUpdate mRBullets(cnt)
+		loop
+
+		checkHitCShellPlaer mCShells
+		checkHitCShellBunker mCShells
+		checkHitRBulletPlaer mRBullets
+		checkHitRBulletBunker mRBullets
+		return
+	}
 
 	apacheActionControll thismod
 	apacheUpdateGravity thismod
@@ -224,14 +237,14 @@
 	return
 
 #modfunc apacheDraw
-	if mState == stateDisable : return
-
 	repeat length(mCShells)
 		cShellDraw mCShells(cnt)
 	loop
 	repeat length(mRBullets)
 		rBulletDraw mRBullets(cnt)
 	loop
+
+	if mState == stateDisable : return
 
 	xZoom = 1
 	if mDirection == dirLeft : xZoom = -1
